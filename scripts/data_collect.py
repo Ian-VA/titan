@@ -108,11 +108,11 @@ if __name__ == "__main__":
     for i in data:
         observation_names.append(i[0])
 
-    #with multiprocessing.Pool() as p:
-    #    p.map(scrape_data, observation_names)
+    with multiprocessing.Pool() as p:
+        p.map(scrape_data, observation_names)
 
-   # with multiprocessing.Pool() as p:
-      #  p.map(convert_to_cube, os.listdir("processed/"))
+    with multiprocessing.Pool() as p:
+        p.map(convert_to_cube, os.listdir("processed/"))
 
     processing(os.listdir("processed"))
 
