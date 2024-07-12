@@ -125,14 +125,17 @@ def get_pixel_data_through_dataset(key, lat, lon):
 def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
     data = []
     intensity = []
+    all_days = []
+    long_flybys = []
 
-    if flyby_only:
+    if flyby_only and not wavelengths:
         with open(f"{key}.csv") as csvfile:
             reader = csv.reader(csvfile)
-            all_days = []
+            reader = sorted(reader, key=lambda row: row[0], reverse=True) # sort
 
             previous_timestamp = None
             cnt = 0
+            bad = False
 
             for row in reader:
                 if cnt == 0:
@@ -140,24 +143,68 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
                     continue
 
                 if cnt == 1:
-                    previous_timestamp = datetime.strptime(row[0], "%d/%m/%Y")
+                    previous_timestamp = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S.%f%z").strftime("%m/%d/%y")
                     cnt += 1
-                else:
-                    timestamp = datetime.strptime(row[0], "%d/%m/%Y")
 
-                    if timestamp not in all_days:
-                        all_days.append([timestamp])
+                    all_days.append([previous_timestamp])
+                else:
+                    try:
+                        timestamp = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S.%f%z").strftime("%m/%d/%y")
+                    except:
+                        timestamp = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S.%f").strftime("%m/%d/%y") # for some reason, some dates are like this
+
+                    for i in all_days:
+                        if timestamp == i[0]: bad = True
+
+                    if not bad: all_days.append([timestamp])
+                    bad = False
 
                     if timestamp == previous_timestamp:
                         for i in all_days:
                             if i[0] == previous_timestamp:
-                                i[0].append(timestamp)
+                                i.append(row)
                     else:
                         previous_timestamp = timestamp
-                        
+
+        long_flybys = []
+
+        for x in all_days:
+            if len(x) > 15:
+                long_flybys.append(x)
+
+        
+        del all_days
+
+        cnt = 0
+
+        for i in long_flybys:
+            x = []
+            y = []
+
+            targets = []
+
+            for j in i[1:]:
+                targets.append(int(j[4]))
+                x.append(float(j[2]))
+                y.append(float(j[1]))
 
 
-    if wavelengths:
+            fig, ax = plt.subplots()
+            
+            scatter = ax.scatter(x, y, c=targets)
+            legend = ax.legend(*scatter.legend_elements(), loc="upper left", title="Legend")
+            ax.add_artist(legend)
+
+            plt.title(f"Flyby on {i[0]}: {len(i)} Observations, Intensity vs. {key}")
+            
+            plt.xlabel(key)
+            plt.ylabel("Intensity")
+
+            plt.savefig(f"Data/Flyby/{key}/{cnt}.png")
+            cnt += 1
+
+
+    if wavelengths and not flyby_only:
         wavelength_list = [[] for i in range(len(wavelengths))]
         with open(f"{key}.csv") as csvfile:
             reader = csv.reader(csvfile)
@@ -174,7 +221,8 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
 
 
     wavelength_list = []
-    if not wavelengths:
+
+    if not wavelengths and not flyby_only:
         with open(f"{key}.csv") as csvfile:
             data = []
             reader = csv.reader(csvfile)
@@ -194,12 +242,15 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
         for i in data:
             intensities = []
             keys = []
+            colors = []
 
             for j in i[1:]:
                 keys.append(float(j[2]))
                 intensities.append(float(j[1]))
+                colors.append(float(j[4]))
 
-
+            #plt.figure()
+            plt.plot()
             plt.legend(wavelength_list)
             plt.scatter(keys, intensities)
             plt.xlabel(key)
@@ -207,14 +258,9 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
             plt.title(f"Intensity vs. {key}")
 
                         
-    #plt.title(f"{key} vs. Intensity")
-    #plt.xlabel(key)
-    #plt.ylabel("Intensity")
-    #plt.scatter(data, intensity)
-    
-    plt.show()
+        plt.show()
 
 
 
-get_pixel_data_through_dataset("SubSolarAzimuth", 60,20)
-draw_scatter_plot("SubSolarAzimuth")
+#get_pixel_data_through_dataset("SubSolarAzimuth", 60,20)
+draw_scatter_plot("SpacecraftAzimuth", True)
