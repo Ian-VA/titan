@@ -5,11 +5,45 @@ from pysis.exceptions import ProcessError
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from datetime import datetime
+import matplotlib.cm as cm
+import matplotlib
+import numpy as np
+import multiprocessing
 
 # Emission = Viewing Zenith
 # Incidence = Solar Zenith
 # Phase = Scattering Angle
 # Group data by pass
+
+def cmap_map(function, cmap):
+    """ Applies function (which should operate on vectors of shape 3: [r, g, b]), on colormap cmap.
+    This routine will break any discontinuous points in a colormap.
+    """
+    cdict = cmap._segmentdata
+    step_dict = {}
+    # Firt get the list of points where the segments start or end
+    for key in ('red', 'green', 'blue'):
+        step_dict[key] = list(map(lambda x: x[0], cdict[key]))
+    step_list = sum(step_dict.values(), [])
+    step_list = np.array(list(set(step_list)))
+    # Then compute the LUT, and apply the function to the LUT
+    reduced_cmap = lambda step : np.array(cmap(step)[0:3])
+    old_LUT = np.array(list(map(reduced_cmap, step_list)))
+    new_LUT = np.array(list(map(function, old_LUT)))
+    # Now try to make a minimal segment definition of the new LUT
+    cdict = {}
+    for i, key in enumerate(['red','green','blue']):
+        this_cdict = {}
+        for j, step in enumerate(step_list):
+            if step in step_dict[key]:
+                this_cdict[step] = new_LUT[j, i]
+            elif new_LUT[j,i] != old_LUT[j, i]:
+                this_cdict[step] = new_LUT[j, i]
+        colorvector = list(map(lambda x: x + (x[1], ), this_cdict.items()))
+        colorvector.sort()
+        cdict[key] = colorvector
+
+    return matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
 
 def get_key_from_pixel(observation_name, lat, lon, key=None):
     pvlres = pixelinfo.point_info(observation_name, lon, lat, point_type="ground")
@@ -96,6 +130,24 @@ def get_filter_info(observation_name):
         print(f"Error obtaining filter name from {observation_name}: {e.stderr}")
 
 
+def convert_one_sample(sample):
+    if sample.endswith(".cub"):
+        new_name = sample[:12]
+        new_name = new_name + "_RC.cub"
+
+        try:
+            isis.map2map(from_=f"processed/{sample}", to=f"processed/{new_name}", map="reconfigure.map", pixres="map")
+            os.system(f"rm processed/{sample}")
+        except ProcessError as e:
+            print(f"Error recalculating pixel resolution for sample {sample}: {e.stderr}")
+
+
+def convert_pixel_resolution():
+    cub_names = [i for i in os.listdir("processed/")]
+
+    with multiprocessing.Pool() as p:
+        p.map(convert_one_sample, cub_names)
+
 def get_pixel_data_through_dataset(key, lat, lon):
     """
     Returns all available keys throughout an entire dataset of a single pixel
@@ -131,7 +183,7 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
     if flyby_only and not wavelengths:
         with open(f"{key}.csv") as csvfile:
             reader = csv.reader(csvfile)
-            reader = sorted(reader, key=lambda row: row[0], reverse=True) # sort
+            reader = sorted(reader, key=lambda row: row[0], reverse=True) # sort by time
 
             previous_timestamp = None
             cnt = 0
@@ -172,7 +224,6 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
             if len(x) > 15:
                 long_flybys.append(x)
 
-        
         del all_days
 
         cnt = 0
@@ -190,21 +241,26 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
 
 
             fig, ax = plt.subplots()
+
+            dark_spectral = cmap_map(lambda x : x * 0.9, matplotlib.cm.Spectral_r)
             
-            scatter = ax.scatter(x, y, c=targets)
+            scatter = ax.scatter(x, y, c=targets, cmap=dark_spectral)
             legend = ax.legend(*scatter.legend_elements(), loc="upper left", title="Legend")
             ax.add_artist(legend)
 
-            plt.title(f"Flyby on {i[0]}: {len(i)} Observations, Intensity vs. {key}")
+            try:
+                plt.xlabel(f"{key} ({key_dict[key]})")
+            except:
+                plt.xlabel(f"{key}")
+
+            plt.title(f"Flyby on {i[0]}: {len(i)} Observations, Intensity vs {key}")
             
-            plt.xlabel(key)
-            plt.ylabel("Intensity")
+            plt.ylabel("Intensity (Irradiance / Flux)")
 
             plt.savefig(f"Data/Flyby/{key}/{cnt}.png")
             cnt += 1
 
-
-    if wavelengths and not flyby_only:
+    if wavelengths and not flyby_only: # if we want to constrain data to certain wavelength ranges
         wavelength_list = [[] for i in range(len(wavelengths))]
         with open(f"{key}.csv") as csvfile:
             reader = csv.reader(csvfile)
@@ -219,10 +275,9 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
             data.append(float(i[1]))
             intensity.append(float(i[0]))
 
-
     wavelength_list = []
 
-    if not wavelengths and not flyby_only:
+    if not wavelengths and not flyby_only: # meaning to get data across all wavelengths and flybys
         with open(f"{key}.csv") as csvfile:
             data = []
             reader = csv.reader(csvfile)
@@ -249,18 +304,35 @@ def draw_scatter_plot(key, flyby_only=False, wavelengths=[]):
                 intensities.append(float(j[1]))
                 colors.append(float(j[4]))
 
-            #plt.figure()
-            plt.plot()
-            plt.legend(wavelength_list)
-            plt.scatter(keys, intensities)
-            plt.xlabel(key)
-            plt.ylabel("Intensity")
-            plt.title(f"Intensity vs. {key}")
 
-                        
-        plt.show()
+        fig, ax = plt.subplots()
 
+        dark_spectral = cmap_map(lambda x : x * 0.9, matplotlib.cm.Spectral_r)
+        
+        scatter = ax.scatter(keys, intensities, c=colors, cmap=dark_spectral)
+        legend = ax.legend(*scatter.legend_elements(), loc="upper left", title="Legend")
+        ax.add_artist(legend)
 
+        try:
+            plt.xlabel(f"{key} ({key_dict[key]})")
+        except:
+            plt.xlabel(f"{key}")
 
-#get_pixel_data_through_dataset("SubSolarAzimuth", 60,20)
-draw_scatter_plot("SpacecraftAzimuth", True)
+        plt.ylabel("Intensity (Irradiance / Flux)")
+        plt.title(f"Intensity vs. {key}")
+
+        plt.savefig(f"Data/Angle-Specific/{key}")
+
+if __name__ == "__main__":
+    key_dict = {
+            "Phase": "Scattering Angle (degrees)",
+            "Incidence": "Solar Zenith (degrees)",
+            "Emission": "Viewing Zenith (degrees)"
+    }
+
+    #get_pixel_data_through_dataset("SpacecraftAzimuth", 60,20)
+
+    for i in ["SpacecraftAzimuth", "Emission", "Incidence", "Phase", "SubSolarAzimuth"]:
+        #draw_scatter_plot(i, True)
+        draw_scatter_plot(i)
+

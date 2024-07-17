@@ -1,0 +1,4 @@
+Group = Mapping
+        ProjectionName      = SimpleCylindrical
+        PixelResolution     = 50000
+End_Group
