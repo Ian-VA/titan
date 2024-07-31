@@ -8,29 +8,63 @@ from tqdm import tqdm
 from cube_operations import get_filter_info
 
 def return_calculated_values(cube_list):
-    values = []
+    filters_dict = {}
+    wavelength_dict = {}
+
+    if len(cube_list) < 2:
+        raise Exception("Given flyby too small to supply Stokes parameters")
+
+    compatible_filters = ["P0", "P60", "P120"]
+    compatible_filters_ir = ["IRP0", "CLR", "IRP90"]
+
+    compatible_wavelengths_ir = ["MT2", "CB2", "MT3", "CB3"]
+    compatible_wavelengths = ["UV3", "BL2", "GRN", "MT1", "CB1", "MT2", "CB2"]
 
     for i in cube_list:
         file_name = f"trimmed/{i}"
+        pangle, pwavelength = get_filter_info(file_name)
 
-        samples, lines = isis.getkey(from_=file_name, objname="Core", grpname="Dimensions", keyword="Samples"), isis.getkey(from_=file_name, objname="Core", grpname="Dimensions", keyword="Lines")
+        if (pangle in compatible_filters and pwavelength in compatible_wavelengths) or (pangle in compatible_filters_ir and pwavelength in compatible_wavelengths_ir):
 
-        samples, lines = int(samples.decode("utf-8")), int(lines.decode("utf-8"))
-        
-        calculated_values_dict1 = {
-                "i": np.zeros((samples, lines)),
-                "q": np.zeros((samples, lines)),
-                "u": np.zeros((samples, lines)),
-                "v": np.zeros((samples, lines)), # no circular polarization, so this probably stays this way
-                "dolp": np.zeros((samples, lines)),
-        }
+            if not pangle in filters_dict:
+                filters_dict[pangle] = []
+                filters_dict[pangle].append(file_name)
+            else:
+                filters_dict[pangle].append(file_name)
 
-        values.append(calculated_values_dict1)
+            if not pwavelength in wavelength_dict:
+                wavelength_dict[pwavelength] = []
+                wavelength_dict[pwavelength].append(file_name)
+            else:
+                wavelength_dict[pangle].append(file_name)
 
-        # TODO: figure out a way to calculate stokes parameters from Cassini ISS
+    if len(filters_dict.keys()) < 2:
+        raise Exception("Given flyby can't supply Stokes parameters due to too little compatible filters/wavelengths")
 
-    return values
-        
+    
+    for i in wavelength_dict:
+        if wavelength_dict[i] >= 2:
+            pangles = {}
+
+            for j in wavelength_dict[i]:
+                pangles[list(filters_dict.keys())[list(filter_dict.values().index(j))]] = j
+
+            print(pangles)
+
+            if set(pangles.keys()).issubset(set(compatible_filters)):
+                dolp, i, theta = os.system(f"gdl -e 'make_polar_image.pro' ${pangles['P0']} ${pangles['P60']} ${pangles['P120']}")
+                return i, dolp
+
+            elif set(pangles.keys()).issubset(set(compatible_filters_ir)):
+                try:
+                    i, q = os.system(f"gdl -e 'make_polar_image.pro' ${pangles['IRP0']} ${pangles['IRP90']}")
+                except:
+                    i, q = os.system(f"gdl -e 'make_polar_image.pro' ${pangles['IRP0']} ${pangles['CLR']}")
+
+                dolp = -q/i
+
+                return i, dolp
+
 def return_geolocation_values(cube_list):
 
     geolocation_values = []
@@ -84,7 +118,11 @@ def return_geolocation_values(cube_list):
 
 
 def return_spectral_values(cube_list):
+    """
 
+    Returns the wavelengths and polarization angles of a list of cubes
+
+    """
     polarization_angles, wavelengths = [], []
 
     for i in cube_list:
@@ -106,42 +144,43 @@ def return_spectral_values(cube_list):
     return polarization_angles, wavelengths
 
 def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
+    """
+    Converts all flybys into HDF5 files
+    """
     flybys = os.listdir(directory)
 
     for i in flybys:
-        file = h5py.File(f"HDF5Data/Flyby-{i}.hdf5", "w")
-        cube_list = []
+        with h5py.File(f"HDF5Data/Flyby-{i}.hdf5", 'a') as file:
+            cube_list = []
 
-        with open(f"{directory}/{i}") as f:
-            cube_list = list(f)   
-            cube_list.pop(0)
+            with open(f"{directory}/{i}") as f:
+                cube_list = list(f)   
+                cube_list.pop(0)
 
 
-        for i in cube_list:
-            file.create_group(i)
+            for i in cube_list:
+                file.create_group(i)
+                file.create_group(f"{i}/geolocation_values")
 
-            for j in ["calculated_values", "geolocation_values", "spectral_values"]:
-                file.create_group(f"{i}/{j}")
+                for j in ["calculated_values", "spectral_values"]:
+                    file.create_group(f"{j}")
 
-        geolocation = return_geolocation_values(cube_list)
+            geolocation = return_geolocation_values(cube_list)
 
-        for index, i in enumerate(geolocation):
-            for j in i.keys():
-                file.create_dataset(f"{cube_list[index]}/geolocation_values/{j}", data=i[j], dtype='f')
+            for index, i in enumerate(geolocation):
+                for j in i.keys():
+                    file.create_dataset(f"{cube_list[index]}/geolocation_values/{j}", data=i[j], dtype='f')
 
-        polarization_angles, wavelengths = return_spectral_values(cube_list)
+            polarization_angles, wavelengths = return_spectral_values(cube_list)
+            file.create_dataset(f"spectral_values/polarization_angles", data=polarization_angles, dtype='f')
+            file.create_dataset(f"spectral_values/wavelengths", data=wavelengths, dtype='f')
 
-        for index, i in enumerate(polarization_angles):
-            file.create_dataset(f"{cube_list[index]}/spectral_values/polarization_angle", data=i, dtype='f')
-
-        for index, i in enumerate(wavelengths):
-            file.create_dataset(f"{cube_list[index]}/spectral_values/wavelength", data=i, dtype='f')
-
-        calculated_values = return_calculated_values(cube_list)
-
-        for index, i in enumerate():
-            for j in i.keys():
-                file.create_dataset(f"{cube_list[index]}/calculated_values/{j}", data=i[j], dtype='f')
+            try:
+                intensity, dolp = return_calculated_values(cube_list)
+                file.create_dataset(f"calculated_values/i", data=intensity, dtype='f')
+                file.create_dataset(f"calculated_values/dolp", data=dolp, dtype='f')
+            except:
+                continue
 
 if __name__ == "__main__":
     convert_flybys_to_hdf5()

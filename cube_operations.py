@@ -64,7 +64,7 @@ def trim_by_phase(max_incidence: int=70):
             except ProcessError as e:
                 print(f"Error with trimming by incidence angle: {e.stderr}")
 
-def get_filter_info(observation_name: str):
+def get_filter_info(observation_name: str, get_raw : bool=False):
     """
     Translates cube observation_name's FilterName keyword into wavelengths and polarization angles.
 
@@ -75,6 +75,9 @@ def get_filter_info(observation_name: str):
     try:
         filter_key = isis.getkey(from_=observation_name, keyword="FilterName", grpname="BandBin")
         filter_key = filter_key.decode('utf-8').strip().split('/')
+
+        if get_raw:
+            return filter_key[0], filter_key[1]
 
         polarization_angles_nac = {
                 "P0": 0,
