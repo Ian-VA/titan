@@ -6,6 +6,7 @@ import numpy as np
 import pvl
 from tqdm import tqdm
 from cube_operations import get_filter_info
+import subprocess
 
 def return_calculated_values(cube_list):
     filters_dict = {}
@@ -21,49 +22,55 @@ def return_calculated_values(cube_list):
     compatible_wavelengths = ["UV3", "BL2", "GRN", "MT1", "CB1", "MT2", "CB2"]
 
     for i in cube_list:
+        i = i.strip('\n')
         file_name = f"trimmed/{i}"
-        pangle, pwavelength = get_filter_info(file_name)
+        pangle, pwavelength = get_filter_info(file_name, True)
+
+        if pwavelength[0] == 'P' or pwavelength[:2] == "IR":
+            temp = pwavelength
+            pwavelength = pangle
+            pangle = temp
+
+        #print(f"file_name {file_name}: {pangle}, {pwavelength}")
 
         if (pangle in compatible_filters and pwavelength in compatible_wavelengths) or (pangle in compatible_filters_ir and pwavelength in compatible_wavelengths_ir):
 
-            if not pangle in filters_dict:
-                filters_dict[pangle] = []
-                filters_dict[pangle].append(file_name)
-            else:
-                filters_dict[pangle].append(file_name)
+            filters_dict[file_name] = pangle
 
             if not pwavelength in wavelength_dict:
                 wavelength_dict[pwavelength] = []
                 wavelength_dict[pwavelength].append(file_name)
             else:
-                wavelength_dict[pangle].append(file_name)
+                wavelength_dict[pwavelength].append(file_name)
 
-    if len(filters_dict.keys()) < 2:
-        raise Exception("Given flyby can't supply Stokes parameters due to too little compatible filters/wavelengths")
+    #print(f"Wavelength_dict: {wavelength_dict}")
 
+    print(filters_dict)
     
     for i in wavelength_dict:
-        if wavelength_dict[i] >= 2:
+        if len(wavelength_dict[i]) >= 2:
             pangles = {}
 
             for j in wavelength_dict[i]:
-                pangles[list(filters_dict.keys())[list(filter_dict.values().index(j))]] = j
+                pangles[filters_dict[j]] = j 
 
-            print(pangles)
+            print(f"Polarization angles: {pangles}")
 
-            if set(pangles.keys()).issubset(set(compatible_filters)):
-                dolp, i, theta = os.system(f"gdl -e 'make_polar_image.pro' ${pangles['P0']} ${pangles['P60']} ${pangles['P120']}")
-                return i, dolp
+            if set(compatible_filters).issubset(pangles.keys()):
+                p0, p1, p2 = os.path.abspath(pangles['P0']), os.path.abspath(pangles['P60']), os.path.abspath(pangles['P120'])
+                subprocess.call(['bash', 'scripts/invoke_gdl_nac.sh', p0, p1, p2])
 
-            elif set(pangles.keys()).issubset(set(compatible_filters_ir)):
+                return p0, p1
+
+            elif set(compatible_filters_ir).issubset(set(pangles.keys())):
                 try:
-                    i, q = os.system(f"gdl -e 'make_polar_image.pro' ${pangles['IRP0']} ${pangles['IRP90']}")
+                    p0, p90 = os.path.abspath(pangles['IRP0']), os.path.abspath(pangles['IRP90'])
                 except:
-                    i, q = os.system(f"gdl -e 'make_polar_image.pro' ${pangles['IRP0']} ${pangles['CLR']}")
+                    p0, p90 = os.path.abspath(pangles['IRP0']), os.path.abspath(pangles['CLR'])
 
-                dolp = -q/i
+                subprocess.call(['bash', 'scripts/invoke_gdl_ir.sh', p0, p90])
 
-                return i, dolp
+                return p0, p90
 
 def return_geolocation_values(cube_list):
 
@@ -134,12 +141,10 @@ def return_spectral_values(cube_list):
         samples, lines = int(samples.decode("utf-8")), int(lines.decode("utf-8"))
 
         if polarization_angle == "IR 0": polarization_angle = 0
+        print(polarization_angle)
 
-        polarization_angle = np.full((samples, lines), float(polarization_angle))
-        wavelength = np.full((samples, lines), float(wavelength))
-
-        polarization_angles.append(polarization_angle)
-        wavelengths.append(wavelength)
+        polarization_angles.append(float(polarization_angle))
+        wavelengths.append(float(wavelength))
 
     return polarization_angles, wavelengths
 
@@ -157,23 +162,25 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
                 cube_list = list(f)   
                 cube_list.pop(0)
 
+            """
 
-            for i in cube_list:
-                file.create_group(i)
-                file.create_group(f"{i}/geolocation_values")
+            for j in cube_list:
+                file.create_group(j)
+                file.create_group(f"{j}/geolocation_values")
 
-                for j in ["calculated_values", "spectral_values"]:
-                    file.create_group(f"{j}")
+            for j in ["calculated_values", "spectral_values"]:
+                file.create_group(f"{j}")
 
             geolocation = return_geolocation_values(cube_list)
 
-            for index, i in enumerate(geolocation):
-                for j in i.keys():
-                    file.create_dataset(f"{cube_list[index]}/geolocation_values/{j}", data=i[j], dtype='f')
+            for index, j in enumerate(geolocation):
+                for k in j.keys():
+                    file.create_dataset(f"{cube_list[index]}/geolocation_values/{k}", data=j[k], dtype='f')
 
             polarization_angles, wavelengths = return_spectral_values(cube_list)
             file.create_dataset(f"spectral_values/polarization_angles", data=polarization_angles, dtype='f')
             file.create_dataset(f"spectral_values/wavelengths", data=wavelengths, dtype='f')
+            """
 
             try:
                 intensity, dolp = return_calculated_values(cube_list)

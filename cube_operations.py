@@ -427,10 +427,15 @@ if __name__ == "__main__":
             "Emission": "Viewing Zenith (degrees)"
     }
 
-    #get_pixel_data_through_dataset("SpacecraftAzimuth", 60,20)
-    organize_cubes_by_flybys()
-    #trim_by_phase(70)
-    #for i in ["SpacecraftAzimuth", "Emission", "Incidence", "Phase", "SubSolarAzimuth"]:
-        #draw_scatter_plot(i, True)
-     #   draw_scatter_plot(i)
+    """
+
+    get_pixel_data_through_dataset("SpacecraftAzimuth", 60,20)
+    trim_by_phase(70)
+    for i in ["SpacecraftAzimuth", "Emission", "Incidence", "Phase", "SubSolarAzimuth"]:
+        draw_scatter_plot(i, True)
+        draw_scatter_plot(i)
+
+    """
+
+    trim_by_phase(70)
 
