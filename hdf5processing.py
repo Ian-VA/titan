@@ -31,7 +31,6 @@ def return_calculated_values(cube_list):
             pwavelength = pangle
             pangle = temp
 
-        #print(f"file_name {file_name}: {pangle}, {pwavelength}")
 
         if (pangle in compatible_filters and pwavelength in compatible_wavelengths) or (pangle in compatible_filters_ir and pwavelength in compatible_wavelengths_ir):
 
@@ -43,10 +42,6 @@ def return_calculated_values(cube_list):
             else:
                 wavelength_dict[pwavelength].append(file_name)
 
-    #print(f"Wavelength_dict: {wavelength_dict}")
-
-    print(filters_dict)
-    
     for i in wavelength_dict:
         if len(wavelength_dict[i]) >= 2:
             pangles = {}
@@ -54,7 +49,6 @@ def return_calculated_values(cube_list):
             for j in wavelength_dict[i]:
                 pangles[filters_dict[j]] = j 
 
-            print(f"Polarization angles: {pangles}")
 
             if set(compatible_filters).issubset(pangles.keys()):
                 p0, p1, p2 = os.path.abspath(pangles['P0']), os.path.abspath(pangles['P60']), os.path.abspath(pangles['P120'])

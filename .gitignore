@@ -5,3 +5,5 @@ scripts/src/
 trimmed/
 *.csv
 *.prt
+HDF5Data/
+
