@@ -31,7 +31,6 @@ def return_calculated_values(cube_list):
             pwavelength = pangle
             pangle = temp
 
-
         if (pangle in compatible_filters and pwavelength in compatible_wavelengths) or (pangle in compatible_filters_ir and pwavelength in compatible_wavelengths_ir):
 
             filters_dict[file_name] = pangle
@@ -52,15 +51,32 @@ def return_calculated_values(cube_list):
 
             if set(compatible_filters).issubset(pangles.keys()):
                 p0, p1, p2 = os.path.abspath(pangles['P0']), os.path.abspath(pangles['P60']), os.path.abspath(pangles['P120'])
+
+                path = p0.split('trimmed', 1)[0]
+                path = path + "translated/"
+                p0, p1, p2 = p0.split('trimmed/', 1)[1], p1.split('trimmed/', 1)[1], p2.split('trimmed/', 1)[1]
+                name1, name2, name3 = p0.split('.', 1)[0], p1.split('.', 1)[0], p2.split('.', 1)[0]
+                p0, p1, p2 = path + name1 + ".vicar", path + name2 + ".vicar", path + name3 + ".vicar" 
+
+                print(p0)
                 subprocess.call(['bash', 'scripts/invoke_gdl_nac.sh', p0, p1, p2])
 
                 return p0, p1
 
             elif set(compatible_filters_ir).issubset(set(pangles.keys())):
+
                 try:
                     p0, p90 = os.path.abspath(pangles['IRP0']), os.path.abspath(pangles['IRP90'])
                 except:
                     p0, p90 = os.path.abspath(pangles['IRP0']), os.path.abspath(pangles['CLR'])
+
+                path = p0.split('trimmed', 1)[0]
+                path = path + "translated/"
+                p0, p90 = p0.split('trimmed/', 1)[1], p90.split('trimmed/', 1)[1]
+
+                name1, name2 = p0.split('.', 1)[0], p90.split('.', 1)[0]
+
+                p0, p90 = path + name1 + ".vicar", path + name2 + ".vicar" 
 
                 subprocess.call(['bash', 'scripts/invoke_gdl_ir.sh', p0, p90])
 
@@ -135,7 +151,6 @@ def return_spectral_values(cube_list):
         samples, lines = int(samples.decode("utf-8")), int(lines.decode("utf-8"))
 
         if polarization_angle == "IR 0": polarization_angle = 0
-        print(polarization_angle)
 
         polarization_angles.append(float(polarization_angle))
         wavelengths.append(float(wavelength))
@@ -156,7 +171,6 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
                 cube_list = list(f)   
                 cube_list.pop(0)
 
-            """
 
             for j in cube_list:
                 file.create_group(j)
@@ -164,6 +178,8 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
 
             for j in ["calculated_values", "spectral_values"]:
                 file.create_group(f"{j}")
+
+            """
 
             geolocation = return_geolocation_values(cube_list)
 

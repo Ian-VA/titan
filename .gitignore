@@ -6,4 +6,5 @@ trimmed/
 *.csv
 *.prt
 HDF5Data/
-
+translated/
+__pycache__/

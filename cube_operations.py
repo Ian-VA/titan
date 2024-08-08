@@ -50,8 +50,8 @@ def get_key_from_pixel(observation_name: str, lat: int, lon: int):
     pvlres = pixelinfo.point_info(observation_name, lon, lat, point_type="ground")
     return pvlres['GroundPoint']
 
-
 def trim_by_phase(max_incidence: int=70):
+
     """
     Trims pixels from all cubes in the directory processed that have an incidence greater than the given angle
 
@@ -65,6 +65,7 @@ def trim_by_phase(max_incidence: int=70):
                 print(f"Error with trimming by incidence angle: {e.stderr}")
 
 def get_filter_info(observation_name: str, get_raw : bool=False):
+
     """
     Translates cube observation_name's FilterName keyword into wavelengths and polarization angles.
 
@@ -274,6 +275,7 @@ def draw_scatter_plot(key: str, flyby_only: bool=False, n: int=15, wavelengths=[
         wavelengths: list (if this list is not empty, scatter plots will only include the specified wavelengths. See NAC and WAC wavelengths for specific examples)
 
     """
+
     data = []
     intensity = []
     all_days = []

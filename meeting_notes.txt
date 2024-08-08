@@ -1,7 +1,0 @@
-*** MEETINGS THINGS TO DO ***
-
-
-1. Recreate HDF5 Data 
-2. Calculate Stokes parameters from Titan data with GDL
-3. Clean up code, document code, publish to GitLab
-
