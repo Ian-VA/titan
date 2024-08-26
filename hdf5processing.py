@@ -21,6 +21,7 @@ def return_calculated_values(cube_list):
     compatible_wavelengths_ir = ["MT2", "CB2", "MT3", "CB3"]
     compatible_wavelengths = ["UV3", "BL2", "GRN", "MT1", "CB1", "MT2", "CB2"]
 
+
     for i in cube_list:
         i = i.strip('\n')
         file_name = f"trimmed/{i}"
@@ -48,8 +49,9 @@ def return_calculated_values(cube_list):
             for j in wavelength_dict[i]:
                 pangles[filters_dict[j]] = j 
 
-
             if set(compatible_filters).issubset(pangles.keys()):
+                print(pangles['P0'])
+                print(pangles['P60'])
                 p0, p1, p2 = os.path.abspath(pangles['P0']), os.path.abspath(pangles['P60']), os.path.abspath(pangles['P120'])
 
                 path = p0.split('trimmed', 1)[0]
@@ -82,6 +84,7 @@ def return_calculated_values(cube_list):
 
                 return p0, p90
 
+
 def return_geolocation_values(cube_list):
 
     geolocation_values = []
@@ -97,6 +100,7 @@ def return_geolocation_values(cube_list):
                 "longitude": np.zeros((samples, lines)),
                 "viewer_azimuth": np.zeros((samples, lines)),
                 "sub_solar_azimuth": np.zeros((samples, lines)),
+                "relative_azimuth": np.zeros((samples, lines)),
                 "scattering_angle": np.zeros((samples, lines)),
                 "solar_zenith": np.zeros((samples, lines)),
                 "viewing_zenith": np.zeros((samples, lines)),
@@ -129,10 +133,11 @@ def return_geolocation_values(cube_list):
                 geolocation_dict1["sub_solar_azimuth"][i][j] = float(pvlfile["SubSolarAzimuth"])
                 geolocation_dict1["viewing_zenith"][i][j] = float(pvlfile["Emission"])
 
+                geolocation_dict1["relative_azimuth"][i][j] = abs(float(pvlfile["SpacecraftAzimuth"]) - 180.0 - float(pvlfile["SubSolarAzimuth"]))
+
             geolocation_values.append(geolocation_dict1)
 
     return geolocation_values
-
 
 def return_spectral_values(cube_list):
     """
@@ -179,7 +184,6 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
             for j in ["calculated_values", "spectral_values"]:
                 file.create_group(f"{j}")
 
-            """
 
             geolocation = return_geolocation_values(cube_list)
 
@@ -190,6 +194,8 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
             polarization_angles, wavelengths = return_spectral_values(cube_list)
             file.create_dataset(f"spectral_values/polarization_angles", data=polarization_angles, dtype='f')
             file.create_dataset(f"spectral_values/wavelengths", data=wavelengths, dtype='f')
+
+
             """
 
             try:
@@ -198,6 +204,7 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
                 file.create_dataset(f"calculated_values/dolp", data=dolp, dtype='f')
             except:
                 continue
+            """
 
 if __name__ == "__main__":
     convert_flybys_to_hdf5()
