@@ -1,10 +1,6 @@
-processed/
 print.prt
 scripts/__pycache__/
 scripts/src/
-trimmed/
-*.csv
-*.prt
-HDF5Data/
-translated/
+Data/HDF5Data/
+CubeData/
 __pycache__/

@@ -1,0 +1,42 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2009-03-17
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of efficiency directory contents."
+END_OBJECT             = TEXT
+END
+   
+Efficiency directory:
+---------------------
+
+This directory contains various files necessary for calculating the 
+transmission of the ISS cameras as a function of wavelength:
+
+ ccdqe.tab - CCD quantum efficiencies for NAC and WAC.
+ na_optics.tab and wa_optics.tab - Optics transmission functions.
+ solarflux.tab - Solar spectrum.
+ omega0.tab - Omega_0 (total sensitivity) factors for common filter 
+  combinations.
+
+The systrans directory contains the non-wavelength-integrated system 
+transmission values (QE*optics*filter1*filter2) for each filter combination. 
+The naming convention for these files is as follows:
+
+<camera><filter 1><filter 2>_systrans.tab
+
+where <camera> is "issna" or "isswa," and <filter 1> and <filter 2> represent
+the filter names. For polarized filter combinations, values are given for the
+parallel orientation of the filter (full transmission), with values for the 
+perpendicular (blocking) orientation provided in files with subscript 
+"_b_systrans.tab". 
+
+Columns in systrans files are as follows:
+
+ 1st column: Wavelength (nm)  
+ 2nd column: Transmitted Flux
+ 3rd column: Transmitted Flux * Solar Flux (phot per cm^2-s-angstrom at 1 AU)
+
+This directory also includes the files na_effwl.tab and wa_effwl.tab, which
+give the central and effective wavelengths of each filter combination as well 
+as their FWHM in nm.

@@ -1,0 +1,23 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2018-08-06
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of correction directory contents."
+END_OBJECT             = TEXT
+END
+ 
+Correction Directory:
+---------------------
+
+The files nac_qe_correction.tab and wac_qe_correction.tab contain a 
+normalized wavelength-dependent correction function to be applied to the 
+quantum efficiencies of the NAC and WAC during absolute calibration. 
+
+The file correctionfactors_qecorr.tab contains filter-specific absolute 
+radiometric correction factors to be applied to each filter combination 
+individually, and properly takes into account the quantum efficiency 
+correction described above. These corrections were derived from in-flight
+photometric analysis of standard stars, along with Enceladus, Rhea, Dione,
+Titan, Jupiter and Saturn. Details of this analysis can be found in the
+ISS Data User's Guide, and [WESTETAL2010].

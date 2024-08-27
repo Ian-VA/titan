@@ -24,7 +24,7 @@ def return_calculated_values(cube_list):
 
     for i in cube_list:
         i = i.strip('\n')
-        file_name = f"trimmed/{i}"
+        file_name = f"CubeData/trimmed/{i}"
         pangle, pwavelength = get_filter_info(file_name, True)
 
         if pwavelength[0] == 'P' or pwavelength[:2] == "IR":
@@ -50,13 +50,11 @@ def return_calculated_values(cube_list):
                 pangles[filters_dict[j]] = j 
 
             if set(compatible_filters).issubset(pangles.keys()):
-                print(pangles['P0'])
-                print(pangles['P60'])
                 p0, p1, p2 = os.path.abspath(pangles['P0']), os.path.abspath(pangles['P60']), os.path.abspath(pangles['P120'])
 
-                path = p0.split('trimmed', 1)[0]
-                path = path + "translated/"
-                p0, p1, p2 = p0.split('trimmed/', 1)[1], p1.split('trimmed/', 1)[1], p2.split('trimmed/', 1)[1]
+                path = p0.split('CubeData/trimmed', 1)[0]
+                path = path + "CubeData/translated/"
+                p0, p1, p2 = p0.split('CubeData/trimmed/', 1)[1], p1.split('CubeData/trimmed/', 1)[1], p2.split('trimmed/', 1)[1]
                 name1, name2, name3 = p0.split('.', 1)[0], p1.split('.', 1)[0], p2.split('.', 1)[0]
                 p0, p1, p2 = path + name1 + ".vicar", path + name2 + ".vicar", path + name3 + ".vicar" 
 
@@ -72,9 +70,9 @@ def return_calculated_values(cube_list):
                 except:
                     p0, p90 = os.path.abspath(pangles['IRP0']), os.path.abspath(pangles['CLR'])
 
-                path = p0.split('trimmed', 1)[0]
-                path = path + "translated/"
-                p0, p90 = p0.split('trimmed/', 1)[1], p90.split('trimmed/', 1)[1]
+                path = p0.split('CubeData/trimmed', 1)[0]
+                path = path + "CubeData/translated/"
+                p0, p90 = p0.split('CubeData/trimmed/', 1)[1], p90.split('CubeData/trimmed/', 1)[1]
 
                 name1, name2 = p0.split('.', 1)[0], p90.split('.', 1)[0]
 
@@ -90,7 +88,7 @@ def return_geolocation_values(cube_list):
     geolocation_values = []
 
     for i in cube_list:
-        file_name = f"trimmed/{i}"
+        file_name = f"CubeData/trimmed/{i}"
         samples, lines = isis.getkey(from_=file_name, objname="Core", grpname="Dimensions", keyword="Samples"), isis.getkey(from_=file_name, objname="Core", grpname="Dimensions", keyword="Lines")
 
         samples, lines = int(samples.decode("utf-8")), int(lines.decode("utf-8"))
@@ -148,7 +146,7 @@ def return_spectral_values(cube_list):
     polarization_angles, wavelengths = [], []
 
     for i in cube_list:
-        file_name = f"trimmed/{i}"
+        file_name = f"CubeData/trimmed/{i}"
         samples, lines = isis.getkey(from_=file_name, objname="Core", grpname="Dimensions", keyword="Samples"), isis.getkey(from_=file_name, objname="Core", grpname="Dimensions", keyword="Lines")
 
         polarization_angle, wavelength = get_filter_info(file_name)
@@ -168,14 +166,16 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
     """
     flybys = os.listdir(directory)
 
+
+
     for i in flybys:
-        with h5py.File(f"HDF5Data/Flyby-{i}.hdf5", 'a') as file:
+        with h5py.File(f"Data/HDF5Data/Flyby-{i}.hdf5", 'a') as file:
             cube_list = []
 
             with open(f"{directory}/{i}") as f:
                 cube_list = list(f)   
                 cube_list.pop(0)
-
+            """
 
             for j in cube_list:
                 file.create_group(j)
@@ -204,7 +204,6 @@ def convert_flybys_to_hdf5(directory: str = "Flybys/", trimmed: bool = True):
                 file.create_dataset(f"calculated_values/dolp", data=dolp, dtype='f')
             except:
                 continue
-            """
 
 if __name__ == "__main__":
     convert_flybys_to_hdf5()

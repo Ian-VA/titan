@@ -1,0 +1,34 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of slope directory contents."
+END_OBJECT             = TEXT
+END
+   
+Slope directory:
+----------------
+
+The slope directory contains the VICAR-format "slope files" derived during 
+ground calibration, and used by the calibration software as flatfields. 
+These files have units of picoamp-ms/DN, but are normalized to the average 
+of the inner 400x400 pixels before use.
+
+Database files are also included which specify the slope files as functions
+of filter combination and temperature. There are three different database
+files: slope_db_1.tab is the original, and contains some outdated naming 
+conventions; slope_db_2.tab is considered best, and is the one currently 
+used in CISSCAL; slope_db_3.tab is the newest, but contains some files that 
+have been found to introduce excess noise into the images.   
+
+The old/ directory contains obsolete slope files. Specifically:
+
+  slope.slp130.old (replaced by a window median filtered version)
+  slope.slp201.old (old version had invalid VICAR format)
+
+In the fall of '03, the NAC slope files were replaced with new versions 
+corrected for anti-blooming pixel pairs (since the originals were created
+from images that had anti-blooming mode turned on). The changes to these 
+files are documented in the document pair_removal.txt, also included in this 
+directory.

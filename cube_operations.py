@@ -53,14 +53,14 @@ def get_key_from_pixel(observation_name: str, lat: int, lon: int):
 def trim_by_phase(max_incidence: int=70):
 
     """
-    Trims pixels from all cubes in the directory processed that have an incidence greater than the given angle
+    Trims pixels from all cubes in the directory CubeData-Processed that have an incidence greater than the given angle
 
     """
 
-    for i in tqdm(os.listdir("processed/")):
+    for i in tqdm(os.listdir("CubeData/processed/")):
         if i.endswith(".cub"):
             try:
-                isis.photrim(from_="processed/"+i, to="trimmed/"+i, MAXINCIDENCE=max_incidence)
+                isis.photrim(from_="CubeData/processed/"+i, to="CubeData/trimmed/"+i, MAXINCIDENCE=max_incidence)
             except ProcessError as e:
                 print(f"Error with trimming by incidence angle: {e.stderr}")
 
@@ -166,25 +166,25 @@ def convert_one_sample(sample: str):
         new_name = new_name + "_RC.cub"
 
         try:
-            isis.map2map(from_=f"processed/{sample}", to=f"processed/{new_name}", map="reconfigure.map", pixres="map")
-            os.system(f"rm processed/{sample}")
+            isis.map2map(from_=f"CubeData/processed/{sample}", to=f"CubeData/processed/{new_name}", map="reconfigure.map", pixres="map")
+            os.system(f"rm CubeData/processed/{sample}")
         except ProcessError as e:
             print(f"Error recalculating pixel resolution for sample {sample}: {e.stderr}")
 
 def convert_pixel_resolution():
     """
-    Uses a multiprocessing pool to convert the resolution of all cubes in the directory processed/
+    Uses a multiprocessing pool to convert the resolution of all cubes in the directory CubeData-Processed/
 
     Note that the resolution needs to be defined in the map file "reconfigure.map"
     """
-    cub_names = [i for i in os.listdir("processed/")]
+    cub_names = [i for i in os.listdir("CubeData/processed/")]
 
     with multiprocessing.Pool() as p:
         p.map(convert_one_sample, cub_names)
 
 def get_pixel_data_through_dataset(key: str, lat: int, lon: int):
     """
-    Returns the user-defined key, focused on a single pixel throughout all cubes in directory processed/. 
+    Returns the user-defined key, focused on a single pixel throughout all cubes in directory CubeData-Processed/. 
 
     For any cube that has both the user-defined pixel and key, writes the cube name, time, pixel intensity, user-defined key, polarization angle, and wavelength to a .csv file with the same name as the user-defined key.
 
@@ -197,8 +197,8 @@ def get_pixel_data_through_dataset(key: str, lat: int, lon: int):
     with open(f"{key}.csv", 'w+') as csvfile: # initialize csvfile
         csv.writer(csvfile).writerow(['Observation', 'Time', 'Intensity', key,  "Polarization Angle", "Wavelength"])
 
-    for i in tqdm(os.listdir("processed")):
-        name = "processed/" + i
+    for i in tqdm(os.listdir("CubeData/processed")):
+        name = "CubeData/processed/" + i
 
         if i.endswith(".cub"):
             pvlfile = get_key_from_pixel(name, lat, lon)
@@ -218,7 +218,7 @@ def get_pixel_data_through_dataset(key: str, lat: int, lon: int):
 
 def dataset_to_csv(name: str="CassiniData"):
     """
-    Loops through all cubes in directory processed and saves their names, the date observed, and their polarization angles and wavelengths to the csv file name
+    Loops through all cubes in directory CubeData-Processed and saves their names, the date observed, and their polarization angles and wavelengths to the csv file name
 
     Args:
         name: String
@@ -227,8 +227,8 @@ def dataset_to_csv(name: str="CassiniData"):
     with open(f"{name}.csv", "w+") as csvfile:
         csv.writer(csvfile).writerow(['Observation', 'Time', 'Polarization Angle', 'Wavelength'])
 
-    for i in tqdm(os.listdir("processed")):
-        cube_name = "processed/" + i
+    for i in tqdm(os.listdir("CubeData/processed")):
+        cube_name = "CubeData/processed/" + i
         if i.endswith(".cub"):
             pangle, pwavelength = get_filter_info(cube_name)
             time = isis.getkey(from_=cube_name, grpname="Instrument", keyword="StartTime")
@@ -251,8 +251,8 @@ def organize_cubes_by_flybys(name: str="CassiniData"):
     df = df.replace(r'\r\n',' ', regex=True)
 
 
-    if not os.path.exists("Flybys"):
-        os.system("mkdir Flybys")
+    if not os.path.exists("Data/Flybys"):
+        os.system("mkdir Data/Flybys")
 
     unique_dates = df["Time"].map(lambda t: t[:8]).unique().tolist()
     df["Time"] = df["Time"].map(lambda t: t[:8])
@@ -261,7 +261,7 @@ def organize_cubes_by_flybys(name: str="CassiniData"):
     for i in unique_dates:
         df1 = df[df['Time'] == i]
         df1 = df1["Observation"]
-        df1.to_csv(f"Flybys/{i}", index=False)
+        df1.to_csv(f"Data/Flybys/{i}", index=False)
 
     
 def draw_scatter_plot(key: str, flyby_only: bool=False, n: int=15, wavelengths=[]):
@@ -358,7 +358,7 @@ def draw_scatter_plot(key: str, flyby_only: bool=False, n: int=15, wavelengths=[
             
             plt.ylabel("Intensity (Irradiance / Flux)")
 
-            plt.savefig(f"Data/Flyby/{key}")
+            plt.savefig(f"Data/VisualizedData/Flyby/{key}")
             cnt += 1
 
     if wavelengths and not flyby_only: # if we want to constrain data to certain wavelength ranges
@@ -419,7 +419,7 @@ def draw_scatter_plot(key: str, flyby_only: bool=False, n: int=15, wavelengths=[
             plt.ylabel("Intensity (Irradiance / Flux)")
             plt.title(f"Intensity vs. {key}")
             
-        plt.savefig(f"Data/Angle-Specific/{key}")
+        plt.savefig(f"Data/VisualizedData/Angle-Specific/{key}")
         
 
 if __name__ == "__main__":

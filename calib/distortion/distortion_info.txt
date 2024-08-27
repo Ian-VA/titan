@@ -1,0 +1,24 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of distortion directory contents."
+END_OBJECT             = TEXT
+END
+  
+Distortion directory:
+---------------------
+
+The file nac_focallengths.tab is a sorted list of NAC focal lengths. Average 
+focal length with no distortion parameter is 2003.181+/-.27 mm. Maximum 
+offset error here would be 0.22 pixels at the corners; little point in doing 
+separate filters, so this file is not currently used by CISSCAL. 
+
+The file wac_focallengths.tab is a sorted list of WAC focal lengths using the 
+standard distortion coefficient of -6.2x10-5.  The average is 200.956 +/- .15 
+mm. Use of an average would introduce a maximum registration error of 0.94 
+pixels at the corners (radius-724 pixels). (0.26 mm/ 200.956mm)*724.
+
+Columns for both files are: filter 1, filter 2, focal length (mm), error (mm).
+

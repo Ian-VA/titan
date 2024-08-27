@@ -1,0 +1,28 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of antibloom directory contents."
+END_OBJECT             = TEXT
+END
+  
+Antibloom directory:
+--------------------
+
+The files abpair_mask_ground_nac.img and abpair_mask_ground_wac.img
+are VICAR-format image files containing masks of the anti-blooming
+mode pixel pairs in the NAC and WAC, as seen in ground calibration
+data. However, since these pixel pairs seem to change with time, these
+files are not used by CISSCAL; instead, an A/B pixel pair identification 
+algorithm is used that is not reliant on a specific mask file.
+
+
+
+
+
+
+
+
+
+

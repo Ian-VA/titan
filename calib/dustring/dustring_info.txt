@@ -1,0 +1,28 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2018-01-09
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of dustring directory contents."
+END_OBJECT             = TEXT
+END
+
+Dustring directory:
+-------------------
+
+This directory contains VICAR-image files used to correct for dustrings
+in the NAC that are not found in the slope files created during ground 
+calibration.
+
+The file nac_dustring_1308947228.img was derived from Venus flyby data.
+
+The file nac_mottle_1444733393.img is a map of the "mottling" flatfield 
+pattern found in all NAC images after SCLK=1444733393.
+
+The file nac_dustring_aboff.img corrects the bright ring located at sample =
+887, line = 388 (already present in the slope files) for images where 
+anti-blooming mode is turned OFF.
+
+All other files (*dustring*.img) include dust rings derived from Titan 
+atmosphere images, and are cumulative with time. These files incorporate the 
+Venus-derived dust ring but not the mottle map. 

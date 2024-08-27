@@ -1,0 +1,47 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of offset directory contents."
+END_OBJECT             = TEXT
+END
+   
+Offset directory:
+-----------------
+
+The offset directory contains shutter offset information for each camera as
+a function of temperature. 
+
+Shutter Offset Files
+
+The actual exposure time differs slightly from the commanded shutter time 
+because the shutter is mechanically activated.  This difference is called 
+the shutter-offset. Because the shutter blades travel in a horizontal 
+direction, the shutter-offset is image sample dependent.
+
+T(s) = t - t0(s)
+
+where 
+s is the sample number
+T is the true exposure time
+t is the commanded exposure time
+t0 is the shutter-offset
+
+The shutter-offset files are VAX-VMS REAL*4 data format in VICAR format. 
+There is one line of 1024 samples representing the shutter-offset for each 
+sample. The values have the units of milliseconds. The VICAR labels contain 
+the characteristics of the image sequence that generated each shutter-offset 
+file and are based upon those of one of the input image files. However, the 
+table below also correlates filename with characteristics.
+
+Optics
+Temp    Camera   Filename
+
+-10 C   NAC      nacfm_so_m10.img
++5 C    NAC      nacfm_so_p5.img
++25 C   NAC      nacfm_so_p25.img
+
+-10 C   WAC      wacfm_so_m10.img
++5 C    WAC      wacfm_so_p5.img
++25 C   WAC      wacfm_so_p25.img

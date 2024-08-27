@@ -1,0 +1,54 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2009-03-06
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Central and effective wavelengths and FWHM for WAC."
+END_OBJECT             = TEXT
+END
+
+All values in nm. First two columns list filter combination, third and fourth 
+columns give central wavelength and full-width at half-maximum (FWHM) of 
+filter combination, and fifth and sixth columns give effective (convolved 
+with solar spectrum) wavelength and FWHM. Values shown are for filter 
+combinations with peak system transmissions of no less than 0.001%. 
+
+\begindata
+CL1  CL2         634.92788      285.999       633.81717      270.190
+CL1  RED         648.42159      150.025       647.23872      150.009
+CL1  GRN         567.12598      123.999       568.21414      122.023
+CL1  BL1         460.41780      62.2554       462.86494      50.2945
+CL1  VIO         419.68391      18.1825       419.82197      16.2746
+CL1  HAL         656.40114      9.96150       656.38581      9.96318
+CL1  IR1         741.45587      99.9735       739.82611      94.5069
+IR3  CL2         917.84122      45.3074       916.72668      42.7950
+IR3  RED         690.60377      3.04414       689.95879      3.04181
+IR3  IRP90       917.88322      45.3223       916.77052      42.8083
+IR3  IRP0        917.88322      45.3223       916.77052      42.8083
+IR3  IR1         790.00678      3.02556       783.72177      3.02306
+IR4  CL2         1002.3626      25.5330       1001.8816      24.0389
+IR4  IRP90       1002.4439      25.5299       1001.9831      24.0217
+IR4  IRP0        1002.4439      25.5299       1001.9831      24.0217
+IR5  CL2         1034.4929      19.4577       1033.8679      18.5289
+IR5  IRP90       1035.2096      19.4591       1034.8592      18.5305
+IR5  IRP0        1035.2096      19.4591       1034.8592      18.5305
+CB3  CL2         938.53218      9.95298       938.44540      9.95151
+CB3  IRP90       938.66854      9.95308       938.61148      9.95161
+CB3  IRP0        938.66854      9.95308       938.61148      9.95161
+MT3  CL2         890.34032      10.0116       890.33240      10.0102
+MT3  IRP90       890.36825      10.0118       890.36403      10.0104
+MT3  IRP0        890.36825      10.0118       890.36403      10.0104
+CB2  CL2         752.36416      10.0044       752.35413      10.0035
+CB2  RED         747.60227      4.07656       747.31661      4.07483
+CB2  IRP90       752.37380      10.0049       752.36383      10.0040
+CB2  IRP0        752.37380      10.0049       752.36383      10.0040
+CB2  IR1         752.32368      10.0026       752.31362      10.0016
+MT2  CL2         728.45187      4.00903       728.41805      4.00957
+MT2  RED         727.51724      2.05059       727.50720      2.04922
+MT2  IRP90       728.47063      4.00906       728.43515      4.00963
+MT2  IRP0        728.47063      4.00906       728.43515      4.00963
+MT2  IR1         728.29258      4.00906       728.28356      4.00964
+IR2  CL2         853.25812      54.8544       852.44754      50.8877
+IR2  IRP90       853.32060      54.8765       852.51012      50.9468
+IR2  IRP0        853.32060      54.8765       852.51012      50.9468
+IR2  IR1         826.34760      26.0795       826.25476      26.0828

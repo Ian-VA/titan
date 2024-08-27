@@ -1,0 +1,16 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of lut directory contents."
+END_OBJECT             = TEXT
+END
+  
+LUT directory:
+--------------
+
+This directory contains the inverse-lookup table used to convert table-
+encoded Cassini ISS images from an 8-bit range back 12-bit. This file, 
+lut.tab, is not actually used by CISSCAL, but is identical to the one found 
+in the code cisscal_delut.pro.

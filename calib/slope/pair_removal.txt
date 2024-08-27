@@ -1,0 +1,69 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Documented changes to NAC slope files."
+END_OBJECT             = TEXT
+END
+   
+Slope Files Corrected for Anti-blooming Pairs
+---------------------------------------------
+
+Note: this document refers to the following list of NAC slope files:
+
+slope.slp109  slope.slp133  slope.slp159  slope.slp185  slope.slp220
+slope.slp110  slope.slp136  slope.slp160  slope.slp187  slope.slp221
+slope.slp111  slope.slp137  slope.slp161  slope.slp188  slope.slp225
+slope.slp112  slope.slp138  slope.slp165  slope.slp189  slope.slp228
+slope.slp113  slope.slp139  slope.slp166  slope.slp190  slope.slp232
+slope.slp114  slope.slp140  slope.slp167  slope.slp196  slope.slp233
+slope.slp121  slope.slp141  slope.slp168  slope.slp201  slope.slp235
+slope.slp122  slope.slp146  slope.slp172  slope.slp202  slope.slp239
+slope.slp125  slope.slp150  slope.slp173  slope.slp209  slope.slp240
+slope.slp129  slope.slp151  slope.slp174  slope.slp215  slope.slp242
+slope.slp130  slope.slp152  slope.slp175  slope.slp216  slope.slp245
+slope.slp131  slope.slp153  slope.slp178  slope.slp217  slope.slp253
+slope.slp132  slope.slp158  slope.slp181  slope.slp218
+
+This set of slope files was derived from long exposure Thermal/Vac
+images with Anti-blooming ON. This resulted in the formation of 
+the bright-dark pixel pairs of various degrees of intensity.  In 
+order to use these slope files to correct Anti-blooming OFF data 
+or data with short exposures, the pairs had to be removed.
+
+The pair-removal process involved:
+1. Determination of which slope files needed fixed
+   - This was a visual inspection process
+2. Determination of a criteria for which pairs to remove
+   - Trial and error gave a useful threshhold of
+     (pair delta DN >= 5% of mean DN)
+3. Generation of a procedure to remove the pairs
+   - A VICAR procedure was generated (see description below)
+4. Validation that nothing bad happened to the good data
+   - Visual inspection of the corrected files and differencing
+     vs. the original files
+     
+Removal Procedure
+The slope file generation process begins with raw flat-field data.
+These data files are then summed by exposure level before being
+processed into slope files.  Due to software limitations, it was 
+determined that the removal process had to act upon the summed
+input data.
+
+The summed files were corrected in the following way:
+1. A filter was applied to identify each pixel which had the
+   characteristic of a large positive difference between itself
+   and its neighbor above.
+2. Areas of known natural large differences not due to pairs
+   were then excluded.
+3. The remaining pairs were replaced by the median value of the
+   surrounding pixels
+   
+The corrected sums were then processed with the original slope
+file generation process.  The current set was generated on Unix,
+so the floating point numbers may differ insignificantly from 
+the old files produced on the VMS OS in the 1990's.
+
+Charlie Avis
+10/2003

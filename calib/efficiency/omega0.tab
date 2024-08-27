@@ -1,0 +1,73 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2018-08-06
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Omega_0 factors for common filter combinations."
+END_OBJECT             = TEXT
+END
+
+Omega_0 is defined as the bandpass-integrated product of optics transmission *
+filter1 transmission * filter2 transmission * corrected quantum efficiency * 
+absolute correction factor * solar spectrum * solid angle * area. The total 
+signal, S, is then given as:
+
+S (e-/pixel) = I/F * omega_0 * t_exp
+
+where t_exp is the exposure time in seconds. For the purposes of this
+calculation, the sun-to-Saturn distance is taken to be 9.14 AU (for ease of
+comparison to previous versions of the calibration).
+
+Column 1: Camera
+Column 2: Filter 1
+Column 3: Filter 2
+Column 4: Omega_0
+
+To re-normalize an image calibrated with a previous version of CISSCAL to the
+current version, image pixel values should be multiplied by the ratio:
+
+omega_0 (previous) / omega_0 (current)
+
+\begindata
+ISSNA   UV1     CL2    4.99408E+02
+ISSNA   UV2     CL2    3.64339E+03
+ISSNA   UV2     UV3    1.72386E+03
+ISSNA   CL1     UV3    2.13158E+04
+ISSNA   CL1     BL2    2.29075E+04
+ISSNA   BL1     CL2    1.07654E+05
+ISSNA   BL1     GRN    6.51030E+03
+ISSNA   CL1     GRN    4.27277E+05
+ISSNA   RED     GRN    1.74166E+05
+ISSNA   CL1     CL2    1.45999E+06
+ISSNA   CL1     MT1    1.35503E+04
+ISSNA   CL1     CB1    7.65096E+04
+ISSNA   RED     CL2    5.31920E+05
+ISSNA   HAL     CL2    3.35177E+04
+ISSNA   RED     IR1    1.62799E+05
+ISSNA   CL1     MT2    1.51763E+04
+ISSNA   CL1     CB2    3.46627E+04
+ISSNA   CL1     IR1    5.05274E+05
+ISSNA   IR2     IR1    5.80107E+04
+ISSNA   IR2     CL2    1.66210E+05
+ISSNA   CL1     MT3    1.36017E+04
+ISSNA   IR2     IR3    4.95236E+04
+ISSNA   CL1     IR3    8.30525E+04
+ISSNA   CL1     CB3    5.92585E+03
+ISSNA   IR4     IR3    8.35459E+03
+ISSNA   IR4     CL2    1.01839E+04
+ISSWA   CL1     VIO    1.23663E+05
+ISSWA   CL1     BL1    1.08039E+06
+ISSWA   CL1     GRN    4.78508E+06
+ISSWA   CL1     CL2    1.33453E+07
+ISSWA   CL1     RED    5.96699E+06
+ISSWA   CL1     HAL    3.36528E+05
+ISSWA   MT2     CL2    1.35653E+05
+ISSWA   CL1     IR1    4.07718E+06
+ISSWA   CB2     CL2    2.75650E+05
+ISSWA   IR2     IR1    2.69408E+05
+ISSWA   IR2     CL2    6.21774E+05
+ISSWA   MT3     CL2    3.43612E+04
+ISSWA   IR3     CL2    1.83432E+05
+ISSWA   CB3     CL2    9.70723E+03
+ISSWA   IR4     CL2    8.63489E+03
+ISSWA   IR5     CL2    9.73098E+02

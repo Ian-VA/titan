@@ -1,0 +1,36 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2018-08-06
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "Description of darkcurrent directory contents."
+END_OBJECT             = TEXT
+END
+
+Darkcurrent directory:
+----------------------
+
+The files nac_derived_dark_parameters* and wac_derived_dark_parameters* 
+contain parameters for the CISSCAL dark interpolation model, in standard
+binary XDR format. Values represent electron emission from each pixel as
+measured in eight exposure bins spanning the range of commandable camera 
+exposure times. The files nac_dark_parameters* and wac_dark_parameters* 
+are the same, but have had various artifacts removed, including saturated 
+pixels, low-frequency horizontal ringing, and residual hot pixel streaks. 
+They have also been median-filtered. These are the files used by the dark 
+subtraction algorithm in CISSCAL 3.7 and subsequent versions.
+
+In addition, the files NAC_hotpix* and WAC_hotpix* contain lists of 
+erroneously bright "hot pixels" measured at various times over the course 
+of the mission. CISSCAL selects the list of hot pixels closest in time to 
+the image to be calibrated, and incorporates these data into the simulated 
+dark. The hot pixel filenames contain the fractional year identifying the 
+measurement epoch, as well as the file creation date.
+
+The darks* directories are where CISSCAL writes the dark image files 
+derived from this model, with directories named according to the epoch of 
+the hot pixel file used. These directories are created automatically the 
+first time the dark algorithm is invoked for an image in a particular 
+epoch. Because of this, it is necessary that the user have write permission 
+to the $CalibrationBaseDir/darkcurrent/ directory on the computer running 
+CISSCAL. 

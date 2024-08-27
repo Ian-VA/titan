@@ -1,0 +1,39 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2004-12-07
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "A sorted list of WAC focal lengths.  Columns are:
+                         filter 1, filter 2, focal length (mm), error (mm)."
+END_OBJECT             = TEXT
+END
+   
+\begindata
+CL1    GRN       200.710      0.00000
+CL1    HAL       200.740    0.0100000
+CL1    RED       200.740    0.0100000
+CL1    CL2       200.770      0.00000
+CL1    IR1       200.800    0.0100000
+MT2    IRP0      200.810    0.0100000
+CB2    IRP0      200.820    0.0100000
+MT2    IRP90     200.820    0.0100000
+MT2    CL2       200.820    0.0300000
+CB2    IRP90     200.830    0.0100000
+CB2    CL2       200.850    0.0100000
+CL1    BL1       200.860    0.0100000
+IR2    IR        200.950      0.00000
+IR2    IRP90     200.950    0.0100000
+IR2    CL2       200.970    0.0100000
+IR3    IRP90     201.030    0.0100000
+IR3    IRP0      201.040    0.0200000
+MT3    CL2       201.040    0.0200000
+IR3    CL2       201.040    0.0400000
+MT3    IRP0      201.060    0.0100000
+MT3    IRP90     201.070    0.0200000
+CL1    VIO       201.090      0.00000
+CB3    IRP0      201.110    0.0400000
+CB3    IRP90     201.120    0.0300000
+IR4    IRP0      201.120    0.0600000
+IR4    IRP90     201.160    0.0500000
+CB3    CL2       201.220    0.0100000
+IR4    CL2       201.220    0.0100000

@@ -1,0 +1,91 @@
+maPDS_VERSION_ID         = PDS3
+RECORD_TYPE            = STREAM
+OBJECT                 = TEXT
+  PUBLICATION_DATE     = 2018-08-03
+  INTERCHANGE_FORMAT   = ASCII
+  NOTE                 = "File containing radiometric correction factors 
+                         for each filter combination. Note that polarized
+                         filters receive the correction for the corresponding
+                         clear/filter combination."
+END_OBJECT             = TEXT
+END
+ 
+\begindata
+ISSNA   UV1   CL2         1.02442
+ISSNA   UV2   CL2        0.979132
+ISSNA   UV2   UV3         1.00877
+ISSNA   CL1   UV3         1.01437
+ISSNA   P0    UV3         1.00000
+ISSNA   P60   UV3         1.00000
+ISSNA   P120  UV3         1.00000
+ISSNA   CL1   BL2        0.954189
+ISSNA   P0    BL2         1.00000
+ISSNA   P60   BL2         1.00000
+ISSNA   P120  BL2         1.00000
+ISSNA   BL1   CL2        0.949278
+ISSNA   BL1   GRN         1.06597
+ISSNA   CL1   GRN        0.981305
+ISSNA   P0    GRN         1.00000
+ISSNA   P60   GRN         1.00000
+ISSNA   P120  GRN         1.00000
+ISSNA   RED   GRN        0.981378
+ISSNA   CL1   CL2        0.979173
+ISSNA   CL1   MT1         1.00556
+ISSNA   CL1   CB1        0.982552
+ISSNA   RED   CL2        0.991197
+ISSNA   HAL   CL2        0.995274
+ISSNA   RED   IR1         1.01664
+ISSNA   CL1   MT2         1.01525
+ISSNA   IRP0  MT2         1.00000
+ISSNA   P0    MT2         1.00000
+ISSNA   P60   MT2         1.00000
+ISSNA   P120  MT2         1.00000
+ISSNA   CL1   CB2        0.977754
+ISSNA   IRP0  CB2         1.00000
+ISSNA   CL1   IR1        0.995418
+ISSNA   IRP0  IR1         1.00000
+ISSNA   IR2   IR1         1.00735
+ISSNA   IR2   CL2         1.00398
+ISSNA   CL1   MT3         1.05233
+ISSNA   IRP0  MT3         1.00000
+ISSNA   IR2   IR3        0.999502
+ISSNA   CL1   IR3        0.982517
+ISSNA   IRP0  CB3         1.00000
+ISSNA   CL1   CB3         1.02821
+ISSNA   IRP0  IR3         1.00000
+ISSNA   IR4   IR3        0.948902
+ISSNA   IR4   CL2        0.985345
+ISSWA   CL1   VIO         1.05224
+ISSWA   CL1   BL1        0.954308
+ISSWA   CL1   GRN        0.999528
+ISSWA   CL1   CL2         1.01400
+ISSWA   CL1   RED         1.02804
+ISSWA   CL1   HAL        0.983777
+ISSWA   CL1   IRP0        1.00000
+ISSWA   CL1   IRP90       1.00000
+ISSWA   MT2   CL2         1.01575
+ISSWA   MT2   IRP0        1.00000
+ISSWA   MT2   IRP90       1.00000
+ISSWA   CL1   IR1         1.05462
+ISSWA   CB2   CL2        0.989780
+ISSWA   CB2   IRP0        1.00000
+ISSWA   CB2   IRP90       1.00000
+ISSWA   IR2   IR1         1.03546
+ISSWA   IR2   CL2         1.04187
+ISSWA   IR2   IRP0        1.00000
+ISSWA   IR2   IRP90       1.00000
+ISSWA   MT3   CL2         1.06697
+ISSWA   MT3   IRP0        1.00000
+ISSWA   MT3   IRP90       1.00000
+ISSWA   IR3   CL2         1.06385
+ISSWA   IR3   IRP0        1.00000
+ISSWA   IR3   IRP90       1.00000
+ISSWA   CB3   CL2         1.05034
+ISSWA   CB3   IRP0        1.00000
+ISSWA   CB3   IRP90       1.00000
+ISSWA   IR4   CL2        0.968383
+ISSWA   IR4   IRP0        1.00000
+ISSWA   IR4   IRP90       1.00000
+ISSWA   IR5   CL2        0.929281
+ISSWA   IR5   IRP0        1.00000
+ISSWA   IR5   IRP90       1.00000

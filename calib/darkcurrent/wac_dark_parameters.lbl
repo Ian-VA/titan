@@ -1,0 +1,24 @@
+PDS_VERSION_ID = PDS3
+
+RECORD_TYPE = UNDEFINED
+
+/*IDENTIFICATION DATA ELEMENTS*/
+
+DATA_SET_ID = "CO-CAL-ISSNA/ISSWA-2-EDR-V4.0"
+INSTRUMENT_HOST_NAME = "CASSINI ORBITER"
+INSTRUMENT_NAME = "IMAGING SCIENCE SUBSYSTEM WIDE ANGLE"
+PRODUCT_CREATION_TIME = "2014-050T00:00:00.000Z"
+PRODUCT_ID = "wac_dark_parameters.xdr"
+OBJECT = FILE
+      FILE_NAME = "wac_dark_parameters.xdr"
+      RECORD_TYPE = UNDEFINED
+      DESCRIPTION = "
+
+              ISS WAC INTERPOLATION MODEL DARK COEFFICIENTS
+
+        This file contains dark current coefficients for the ISS
+        WAC camera in Sun's External Data Representation (XDR) binary 
+        format. This file is used by the dark subtraction algorithm in
+        the CISSCAL image processing software."
+END_OBJECT = FILE
+END
