@@ -1,0 +1,2 @@
+* LaTeX document documenting the code
+* Link every piece of the code with a formula or equation

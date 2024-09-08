@@ -7,5 +7,5 @@ EOF
 
 # Print the script out for debugging
 echo "${IDL_SCRIPT}"
-cd ~/cisscal
+cd ~/data_collection/cisscal
 gdl <<< "${IDL_SCRIPT}"

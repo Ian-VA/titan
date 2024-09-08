@@ -1,11 +1,11 @@
 ------------------
-CISSCAL 4.0 README
+CISSCAL 4.1 README
 ------------------
 
 CISSCAL is the Cassini ISS image calibration software package. For more
 information, including detailed setup instructions, please see Section 4.4
 of the ISS Data User's Guide, available in the document/ directory of the
-ISS Calibration Volume (COISS_0011 version 4.2) or at the following URL:
+ISS Calibration Volume (COISS_0011 version 4.3) or at the following URL:
 
 https://pds-imaging.jpl.nasa.gov/documentation/iss_data_user_guide_180916.pdf
 
@@ -56,6 +56,11 @@ Direct all questions to Ben Knowles at Space Science Institute, Boulder, CO
 
 Version history:
 ----------------
+
+New in version 4.1:
+
+. Updates to polarized filter algorithm in make_polar_image.pro.
+
 
 New in version 4.0:
 

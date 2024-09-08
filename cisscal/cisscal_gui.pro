@@ -1490,7 +1490,7 @@ END
 PRO CISSCal_Gui, Restart=Restart
 @cisscal_common.pro	; include COMMON definitions
 
-  CisscalVers = '4.0'  ; VERSION NUMBER
+  CisscalVers = '4.1'  ; VERSION NUMBER
 
 ;  !ORDER = 1	; Display images top-to-bottom rather than vice-versa
 

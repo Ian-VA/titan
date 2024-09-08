@@ -47,7 +47,7 @@ FUNCTION CassLabels::Set, KeyWord, Value, Quoted, New=New
 ;	Have we already seen this keyword ?
 ;	If multiple matches, then just consider the most recent of them
   Indices = WHERE (( self.Keyword EQ KeyWord ), Count)
-  Index = Count GT 1 ? Indices[Count-1] : Indices ; count-1
+  Index = Count GT 1 ? Indices[Count-1] : Indices
 
   IF Count EQ 0 THEN BEGIN	; Keyword not found: insert a new one
     Index = self.NLabels
@@ -70,18 +70,7 @@ FUNCTION CassLabels::Set, KeyWord, Value, Quoted, New=New
         ' last value [' + self.Value[Index] + '] now [' + Value + ']'
       Index = self.NLabels
       self.NLabels = self.NLabels + 1
-      print, 'INDEX: ', Index
       self.Keyword[Index] = KeyWord
-
-
-    ;  IF NOT (Index eq 200) THEN 
-    ;     self.Keyword[Index] = KeyWord
-    ;  ELSE
-    ;     self.Keyword[200] = "NB"
-
-     print, 'KEYWORD ARRAY: ', self.Keyword
-
-      
     ENDIF ELSE BEGIN
 ;	Here we're changing a pre-existing value for a known key
       IF ( self.Value[Index] NE Value) THEN BEGIN

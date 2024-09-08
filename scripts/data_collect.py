@@ -30,14 +30,33 @@ def remove_null(data):
     return [i for i in data if i != ["N/A"]]
 
 def scrape_data(data):
-    urllib.request.urlretrieve("https://opus.pds-rings.seti.org/opus/api/download/" + data + ".zip", "processed/"+data)
+    urllib.request.urlretrieve("https://opus.pds-rings.seti.org/opus/api/download/" + data + ".zip", "CubeData/unprocessed/"+data)
     
     name = data[7:].capitalize()
 
-    with zipfile.ZipFile(f"CubeData/processed/{data}", 'r') as zip_ref:
-        zip_ref.extractall(f"CubeData/processed/{name}")
+    with zipfile.ZipFile(f"CubeData/unprocessed/{data}", 'r') as zip_ref:
+        zip_ref.extractall(f"CubeData/unprocessed/{name}")
 
-    os.system(f"rm -rf CubeData/processed/{data}")
+    os.system(f"rm -rf CubeData/unprocessed/{data}")
+    img_and_label_only(name)
+
+
+def img_and_label_only(name):
+    image, label = "", ""
+
+    for i in os.listdir(f"CubeData/unprocessed/{name}"):
+        if i.endswith(".IMG"):
+            image = i
+
+        if i.endswith(".LBL"):
+            label = i
+
+    print(image)
+    print(label)
+
+
+    os.system(f"mv CubeData/unprocessed/{name}/{image} CubeData/unprocessed/{image}; mv CubeData/unprocessed/{name}/{label} CubeData/unprocessed/{label}")
+    os.system(f"rm -rf CubeData/unprocessed/{name}")
 
 def convert_to_cube(name):
     label = ""
@@ -56,7 +75,6 @@ def convert_to_cube(name):
 
 def processing(names):
     
-    print(names)
     with pysis.IsisPool() as pool:
         for file in names:
             try:
@@ -112,8 +130,8 @@ if __name__ == "__main__":
         p.map(scrape_data, observation_names)
 
     with multiprocessing.Pool() as p:
-        p.map(convert_to_cube, os.listdir("CubeData/processed/"))
+        p.map(convert_to_cube, os.listdir("CubeData/unprocessed/"))
 
-    processing(os.listdir("CubeData/processed"))
+    processing(os.listdir("CubeData/unprocessed"))
 
 

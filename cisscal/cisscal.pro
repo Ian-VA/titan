@@ -34,4 +34,4 @@ IF EnvVar NE '' THEN ImageBaseDir = EnvVar
 
 CISSCal_Gui
 
-END
+;END

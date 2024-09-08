@@ -58,6 +58,7 @@
 ;  Set the outfile keyword equal to the filename of a VICAR-format
 ;   file containing the calculated intensity. This file will be given
 ;   the same label as file1 to track calibration history.
+;  Transmission coefficients for the [polarizers are returned if Tvals is set
 ;
 ;Invoking the program:
 ;
@@ -98,6 +99,10 @@
 ;       filter wheels and revised transmission constants by R. West.
 ;
 ;  version 11.0, June 28, 2019, various cleanup by B. Knowles.
+;
+;  version 12.0, August 2, 2019, New transmision valus by R. West.
+
+
 
 pro mpi_calc_ipt,I0,I60,I120,T1,T2,d,I,Pol,Theta
 
@@ -259,6 +264,7 @@ endif
 
 end
 
+
 pro mpi_iterate_pol,I0,I60,I120,TL0,TR0,TL60,TR60,TL120,TR120,I,P,THETA,status
 ;
 ; Iteratively solves for I, P, Theta from intensities in polarizers P0, P60, P120
@@ -289,6 +295,7 @@ off120 = 120.8
 status = 3
 
 ; no change to input if the signal is negative or something wrong with inputs:
+; requires a pre-estimation of I, P, Theta
 if n_elements(I0) + n_elements(I60) + n_elements(I120) + n_elements(I) +$
    n_elements(P) + n_elements(Theta) ne 6 then goto, exit
 if min([i,p,i0,i60,i120]) le 0. then goto, exit 
@@ -302,9 +309,7 @@ loopcount = 0
 
 loop:
 loopcount = loopcount + 1
-  ; print,'Lopp ',loopcount,' Iu, Ip, theta ',Iu, Ip, theta
-  ;I0_test = Iu*(TL0 + TR0)/2 + Ip*(TL0*cos((theta-off0)/!radeg)^2 + $
-  ;          TR0*sin((theta-off0)/!radeg)^2)
+
 I0_test = Iu*(TL0 + TR0)/2 + Ip*(TR0 + (TL0-TR0)*cos((theta-off0)/!radeg)^2)
 I60_test = Iu*(TL60 + TR60)/2 + Ip*(TL60*cos((theta-off60)/!radeg)^2 + $
                                     TR60*sin((theta-off60)/!radeg)^2)
@@ -345,9 +350,9 @@ P = Ip/I
 
 theta = theta + float(deltas[2])
 
-if loopcount lt 2 then goto, loop 
+if loopcount lt 3 then goto, loop 
 
- ; stop
+;  stop
 
 exit:
 
@@ -551,7 +556,7 @@ end
 ;==============================================================================================
 
 
-function make_polar_image,file1,file2,file3,align=align,flip=flip,outfile=outfile,silent=silent,debug=debug
+function make_polar_image,file1,file2,file3,align=align,flip=flip,outfile=outfile,silent=silent,debug=debug,tvals=tvals
 
 ; See description, usage, and version history at top of file.
 
@@ -598,6 +603,7 @@ IBatch = -1
 debugflag = 1
 Cisscal_Log,/nolog
 
+  CLR_FLAG = 0 ; SET IF ONE IF THE COMBINATION IS CLR, IRP0
 p = n_params()
 
 if p lt 2 then begin
@@ -721,6 +727,10 @@ if p eq 2 then begin
                t190 = measured_t190_plus_t290
                t20 = measured_t10_plus_t20 - measured_t190_plus_t290
                t10 = measured_t10_plus_t20 - t20
+               
+               tl0 =  0.932 & tr0 = 0.0184
+               tl90 =  0.922 & tr90 = 0.0000
+               
             end
             
             'ISSNA': begin               
@@ -730,39 +740,108 @@ if p eq 2 then begin
                t190 = measured_t190_plus_t290
                t20 = 0.03
                t10 = measured_t10_plus_t20 - t20
+               
+               CoefsP0 =  [     0.682611,    -0.395150]
+
+;               tr0 =  0.00005 & tl0 = (2*coefsp0[0] + coefsp0[1]) - tr0
+               tl0 =      0.970 & tr0 =   0.0005 ; from fitting 
+;               tl0 =      0.870 & tr0 =   0.1005 ; adjusted to match other results
+               
             end
          endcase
       end
       
       'CB2': begin
-         delta = -0.01
-         measured_t10_plus_t20 = 0.974210
-         measured_t190_plus_t290 = 0.936367
-         t290 = 0.0
-         t190 = measured_t190_plus_t290
-         t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
-         t10 = measured_t10_plus_t20 - t20
+        
+         case camera of
+            'ISSWA': begin
+
+               delta = -0.01
+               measured_t10_plus_t20 = 0.974210
+               measured_t190_plus_t290 = 0.936367
+               t290 = 0.0
+               t190 = measured_t190_plus_t290
+               t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
+               t10 = measured_t10_plus_t20 - t20
+         
+               tl0 =  0.952 & tr0 = 0.0217
+               tl90 =  0.936 & tr90 = 0.0000
+            end
+         
+            'ISSNA': begin
+               CoefsP0 =  [     0.649469,    -0.325677]
+               Tr90_lab = 5.0e-05
+               t1_plus_t2 = 2*coefsp0[0] + coefsp0[1]
+               tr0 = Tr90_lab
+               tl0 = t1_plus_t2 - tr0
+               tl0 = 0.973211  & tr0 = 5.00000e-05 ; from fitting
+;         tl0 = 0.873211  & tr0 = 0.10 + 5.00000e-05 ; adjusted to match other filters
+            end
+         endcase
       end
       
       'MT3': begin
-         delta = -0.020
-         measured_t10_plus_t20 = 1.02065
-         measured_t190_plus_t290 = 0.964200
-         t290 = 0.0
-         t190 = measured_t190_plus_t290
-         t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
-         t10 = measured_t10_plus_t20 - t20         
+        
+         case camera of
+            'ISSWA': begin
+               
+               delta = -0.020
+               measured_t10_plus_t20 = 1.02065
+               measured_t190_plus_t290 = 0.964200
+               t290 = 0.0
+               t190 = measured_t190_plus_t290
+               t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
+               t10 = measured_t10_plus_t20 - t20    
+               
+               tl0 =  0.991088 & tr0 = 0.0293053
+               tl90 =   0.963519 & tr90 = 0.00005
+               
+            end
+            
+            'ISSNA': Begin
+               
+               CoefsP0 =  [     0.754710,    -0.499213]
+               Tr90_lab = 5.0e-05
+               t1_plus_t2 = 2*coefsp0[0] + coefsp0[1]
+               tr0 = Tr90_lab
+               tl0 = t1_plus_t2 - tr0
+               
+               tl0 =  1.0  & tr0 = 0.015 ; Compromise between matching t1+t2 and t1-t2
+               
+            end
+            
+         endcase
+         
       end
       
       'IR1': begin
-         delta = 0.00
-         measured_t10_plus_t20 = 0.97565258
-         measured_t190_plus_t290 = 0.982639
-         t290 = 0.0
-         t190 = measured_t190_plus_t290
+        
+         case camera of
+            'ISSWA': begin      
+        
+               delta = 0.00
+               measured_t10_plus_t20 = 0.97565258
+               measured_t190_plus_t290 = 0.982639
+               t290 = 0.0
+               t190 = measured_t190_plus_t290
 ;         t10 = 0.993 & t20 = measured_t10_plus_t20 - t10
-         t20 =  0.02
-         t10 = measured_t10_plus_t20 - t20
+               t20 =  0.02
+               t10 = measured_t10_plus_t20 - t20
+            end   
+            
+            'ISSNA': Begin
+
+               CoefsP0 =  [     0.659661,    -0.346494]
+               Tr90_lab = 5.0e-05
+               t1_plus_t2 = 2*coefsp0[0] + coefsp0[1]
+               tr0 = Tr90_lab
+               tl0 = t1_plus_t2 - tr0
+
+               tl0 =  0.973  & tr0 = 0.00005
+
+            end  
+         endcase
+        
       end
 
       
@@ -778,16 +857,27 @@ if p eq 2 then begin
 ;               t10 = 0.993 & t20 = measured_t10_plus_t20 - t10
                t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
                t10 = measured_t10_plus_t20 - t20
+               CoefsP0 =  [     0.705382,    -0.402231]
+               CoefsP90 = [     0.694937,    -0.407414]
+
+               tl0 =  0.989198 & tr0 = 0.0193352
+               tl90 =    0.982410 & tr90 = 0.00005
+               
             end
-            
-            'ISSNA': begin
-               measured_t10_plus_t20 = 1.02123
-               T20 = 0.03
-               T10 = measured_t10_plus_t20 - T20
-               T190 = T10 & T290 = T20
-            end
+
+            'ISSNA': Begin
+
+                  CoefsP0 =  [     0.717990,    -0.417544]
+                  Tr90_lab = 5.0e-05
+                  t1_plus_t2 = 2*coefsp0[0] + coefsp0[1]
+                  tr0 = Tr90_lab
+                  tl0 = t1_plus_t2 - tr0
+                  
+                  tl0 =  1.0  & tr0 = 0.01839
+
+               end
          endcase
-         
+            
       end
    
       'IR4': begin
@@ -799,6 +889,12 @@ if p eq 2 then begin
 ;        t10 = 0.993 & t20 = measured_t10_plus_t20 - t10
          t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
          t10 = measured_t10_plus_t20 - t20
+         CoefsP0 =  [     0.708331,    -0.426658]
+         CoefsP90 = [     0.706776,    -0.424951]
+
+         tl0 =  0.99 & tr0 = 0.0
+         tl90 =    0.988552 & tr90 = 0.00005
+
       end
 
       'CB3': begin
@@ -812,12 +908,20 @@ if p eq 2 then begin
                t190 = measured_t190_plus_t290
                t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
                t10 = measured_t10_plus_t20 - t20
+
+               tl0 =  0.980503 & tr0 = 0.0144489
+               tl90 =  0.976388 & tr90 = 0.00005
+
             end
             'ISSNA': begin      ; NAC
-               measured_t10_plus_t20 = 1.0166
-               t20 = 0.02
-               t10 = measured_t10_plus_t20 - t20
-               t190 = t10 & t290=T20
+               CoefsP0 =  [     0.681167,    -0.346179]
+               Tr90_lab = 5.0e-05
+               t1_plus_t2 = 2*coefsp0[0] + coefsp0[1]
+               tr0 = Tr90_lab
+               tl0 = t1_plus_t2 - tr0
+               
+               tl0 =  1.0 & tr0 = 0.01616
+
             end
          endcase
 
@@ -831,11 +935,17 @@ if p eq 2 then begin
          t190 = measured_t190_plus_t290 - t290
 ;         t20 = measured_t10_plus_t20 - measured_t190_plus_t290 + delta
          t20 = 0.033
-         t10 = measured_t10_plus_t20 - t20        
+         t10 = measured_t10_plus_t20 - t20     
+         CoefsP0 =  [     0.752568,    -0.473102]
+         CoefsP90 = [     0.718798,    -0.467205]
+
+         tl0 =  1.0 & tr0 = 0.0320381
+         tl90 =    0.970341 & tr90 = 0.00005
+
       end
       
       else: begin
-         print,'Error: Filter '+filter+' not yet supported by make_polar_image.pro'
+         print,'Error: Filter '+filter+' not supported by make_polar_image.pro'
          return,-1
       end
       
@@ -870,12 +980,6 @@ if p eq 2 then begin
          stop
       endif
       
-;      openw,2,'make_polar_image_constants.txt'
-;;      printvals = string(t10,format="(F7.3)") + tab +  string(t20,format="(F7.3)") + tab + $
-;;      string(t190,format="(F7.3)") + tab + string(t290,format="(F7.3)") + tab
-;      printf,2,'Filter ',filter,'t10 t20 t190 t290 ',t10, t20, t190, t290
-;      close,2
-
       stop
    endif
       
@@ -906,15 +1010,6 @@ if p eq 2 then begin
          marginy = abs(yoff)      
       endif
          
-;;      intensity = (irp0 + irp90) ; old method assumed polarizers have the same transmission values
-;;
-;      denom = t10*t190 - t20*t290
-;      
-;      iu = 2.*(irp90*t10 - irp0*t290)/denom                  ; unpolarized component
-;      ip = (irp0*(t190 + t290) - irp90*(t10 + t20))/denom    ; linearly polarized component
-;
-;      intensity = iu + ip
-
 ;     6/2019 update by B. West:     
       x = 0.0 ; replace with cos^2(sunax) if you want Ip.  Otherwise you get q.
       numerator = 2*(-IRP0*T190 + IRP90*T20 + IRP90*T10*x + IRP0*T190*x - IRP90*T20*x - $
@@ -925,18 +1020,14 @@ if p eq 2 then begin
       numerator = -IRP90*T10 + IRP0*T190 - IRP90*T20 + IRP0*T290
       denom = (T10*T190 - T20*T290)*(-1 + 2*x)
       ip = numerator/denom
+      q_90_0 = -numerator/(T10*T190 - T20*T290)
          
       intensity = (IRP90*(T10 - T20) + IRP0*(T190 - T290))/(T10*T190 - T20*T290)
 
-;     for testing purposes only:
-;      window,/free
-;      plot,irp0, irp90, psym=1
-;      IRP90 = (-IRP0*T190 + intensity*T10*T190 + IRP0*T290 - intensity*T20*T290)/(T10-T20)
-;      IRP90prime = (IRP0*(T290-T190) + intensity*(T10*T190 - T20*T290))/(T10-T20)
-;       stop
-;
-         
    endif else begin                                     ;IRP0 and CLR
+    
+    CLR_FLAG = 1
+    
       case z of                                         ;------------
          0: intensity = data2
          1: intensity = data1
@@ -949,11 +1040,6 @@ if p eq 2 then begin
             
          if not keyword_set(silent) then print,'Aligning IR images...'
             
-;         mpi_image_offset,intensity,irp0,xoff,yoff,silent=silent
-;         intensity = mpi_image_shift(intensity,xoff,yoff)
-;          irp0 = intensity*0.03 ; for testing only
-;          xoff = 0.0 & yoff = 0.0 ; for testing only
-         
          mpi_image_offset,irp0,intensity,xoff,yoff,silent=silent
          irp0 = mpi_image_shift(irp0,xoff,yoff)
   
@@ -973,11 +1059,12 @@ if p eq 2 then begin
 ;       irp0 = intensity*(0.11/0.4)
 
 ;     6/2019 update by R. West:      
-      IRP90 = (IRP0*(T290-T190) + intensity*(T10*T190 - T20*T290))/(T10-T20)
-      x = 0.0 ; replace with cos^2(sunaz) if you want Ip.  Otherwise you get q.
-      numerator = -IRP90*T10 + IRP0*T190 - IRP90*T20 + IRP0*T290
-      denom = (T10*T190 - T20*T290)*(-1 + 2*x)
-      ip = numerator/denom
+;      IRP90 = (IRP0*(T290-T190) + intensity*(T10*T190 - T20*T290))/(T10-T20)
+;      x = 0.0 ; replace with cos^2(sunaz) if you want Ip.  Otherwise you get q.
+;      numerator = -IRP90*T10 + IRP0*T190 - IRP90*T20 + IRP0*T290
+;      denom = (T10*T190 - T20*T290)*(-1 + 2*x)
+;      ip = numerator/denom
+      q_90_0 = (Intensity*(Tl0 + Tr0) - 2*IRP0)/(Tl0-Tr0)
 
 ;     for testing purposes only:
 ;      ip = -(((intensity > 1.e-03)*(t10 + t20)-2*(irp0 > 1.e-03)))/((1.-2.*x)*(t10 - t20))
@@ -989,10 +1076,11 @@ if p eq 2 then begin
 
 ; stokes parameter Q:
 
-   q = make_array(size=size(ip),value=-2.0)
+   q = make_array(size=size(data1),value=-2.0)
 ;   z0 = where(intensity gt 0.01)
    z0 = where(intensity gt 0.002)
-   q[z0] = (ip[z0])*(t10*(1-2.*x) + t20*(2.*x-1))/(t10-t20)
+;   q[z0] = (ip[z0])*(t10*(1-2.*x) + t20*(2.*x-1))/(t10-t20)
+   q[z0] = q_90_0[z0]
    q_over_i = make_array(size=size(q))
    q_over_i[z0] = q[z0]/intensity[z0] > (-1.0) < 1.0
 
@@ -1025,6 +1113,16 @@ if p eq 2 then begin
       outstruct.intensity = intensity
       outstruct.q = q
    endelse
+
+   WRITE_CSV, "intensity.csv", outstruct.intensity
+   WRITE_CSV, "q.csv", outstruct.q
+
+   if keyword_set(tvals) then begin
+    case CLR_FLAG of
+       0: tvals = [tl0,tr0,tl90,tr90]
+       1: tvals = [tl0,tr0]
+    endcase
+   endif
       
 endif else begin
       
@@ -1115,53 +1213,121 @@ endif else begin
       
       'GRN': begin
          T1 = 0.648 & T2 = 0.037 & delta_t = 0.026
-         TL0 =  0.675 & TR0 = 0.063
-         TL60 = 0.646 & TR60 =  0.045
-         TL120 =  0.633 & TR120 = 0.047
+         
+         coefsp0     =   [0.521247,    -0.308693]
+         coefsp60    =   [0.493532,    -0.300177]
+         coefsp120   =   [0.485647,    -0.295102]
+         
+         tl0 =  0.716797 & tr0 = 0.0170043
+         tl60 =  0.683687 & tr60 = 0.0032
+         tl120 =  0.6725874 & tr120 = 0.00360489
+
       end
       
       'UV3': begin
          T1 = 0.54  & T2 = 0.087 & delta_t = 0.043
-         TL0 =  0.578 & TR0 = 0.130
-         TL60 =  0.538 & TR60 =  0.095
-         TL120 =  0.527 & TR120 = 0.093
+                  
+         coefsp0  =     [0.527108,    -0.345680]
+         coefsp60  =     [0.484203,    -0.336778]
+         coefsp120  =    [0.478450,    -0.336094]
+
+         t0sum = 2*coefsp0[0] + coefsp0[1]
+         t60sum = 2*coefsp60[0] + coefsp60[1]
+         t120sum = 2*coefsp120[0] + coefsp120[1]
+         
+         p0diff = -coefsp0[1]
+         p60diff = -coefsp60[1]
+         p120diff = -coefsp120[1]
+
+         ; Force the perpendicular transmission to be the same as measured in the lab\
+         ; for P0
+         Tr60_lab = 0.02
+
+         tl0 =  0.658 & tr0 = 0.0506
+         tl60 =  0.612 & tr60 = 0.0200
+         tl120 =  0.606 & tr120 = 0.0151
+
+         i0 = t0sum/(tl0 + tr0)
+         ip = p0diff/(tl0 - tr0)
+         ratio0 = ip/i0
+         print,'polarization for filter 0 = ',ratio0
+         i0 = t60sum/(tl60 + tr60)
+         ip = p60diff/(tl60 - tr60)
+         ratio60 = ip/i0
+         print,'polarization for filter 60 = ',ratio60
+         i0 = t120sum/(tl120 + tr120)
+         ip = p120diff/(tl120 - tr120)
+         ratio120 = ip/i0
+         print,'polarization for filter 120 = ',ratio120
+
       end
       
       'BL2': begin
          T1 = 0.602 & T2 = 0.046 & delta_t = 0.03
-         TL0 =  0.627 & TR0 = 0.076
-         TL60 = 0.600 & TR60 =  0.056
-         TL120 =  0.580 & TR120 = 0.055
+                  
+         coefsp0 =  [     0.531389,     -0.356971]
+         coefsp60 =  [     0.501767,     -0.357583]
+         coefsp120 = [     0.490849,     -0.343358]
+         
+         tl0 =  0.670346 & tr0 = 0.0354594
+         tl60 =  0.640948 & tr60 = 0.00500
+         tl120 =  0.640948 & tr120 = 0.00500
+         
       end
       
       'MT2': begin
          T1 = 0.793 & T2 = 0.085 & delta_t = 0.051
-         TL0 = 0.817 & TR0 = 0.163
-         TL60 = 0.784 & TR60 = 0.095
-         TL120 = 0.781 & TR120 = 0.097
+         
+         coefsp0 =  [     0.641899,     -0.302541]
+         coefsp60 =  [     0.600992,     -0.322660]
+         coefsp120 = [     0.597324,     -0.314228]
+
+         tl0 =  0.846617 & tr0 = 0.134640
+         tl60 =  0.819324 & tr60 = 0.0600
+         tl120 =  0.809950 & tr120 =  0.0704696
+
       end
       
       'CB2': begin
          T1 = 0.793 & T2 = 0.085 & delta_t = 0.051
-         TL0 = 0.841 & TR0 = 0.202
-         TL60 = 0.814 & TR60 = 0.129
-         TL120 = 0.813 & TR120 = 0.123        
-;         TL0_plus_TR0 = 1.04271
-                  
+                
+         coefsp0 =  [     0.640008,     -0.236507]
+         coefsp60 =  [     0.597792,     -0.253027]
+         coefsp120 = [     0.597006,     -0.256408]
+         
+         t0sum = 2*coefsp0[0] + coefsp0[1]
+         t60sum = 2*coefsp60[0] + coefsp60[1]
+         t120sum = 2*coefsp120[0] + coefsp120[1]
+
+         tl0 =  0.868792 & tr0 = 0.174717
+         tl60 =  0.842557 & tr60 = 0.1000
+         tl120 =  0.845042 & tr120 = 0.0925624
       end
       
       'MT1': begin
          T1 = 0.655 & T2 = 0.018 & delta_t = 0.03
-         TL0 =  0.685 & TR0 = 0.049
-         TL60 = 0.649 & TR60 =  0.029
-         TL120 =  0.637 & TR120 = 0.031
+         
+         coefsp0 =  [     0.516046,     -0.299105]
+         coefsp60 =  [     0.482446,     -0.288021]
+         coefsp120 = [     0.476074,     -0.283985]
+         
+
+         tl0 =  0.714838 & tr0 = 0.0181493
+         tl60 =  0.673871 & tr60 = 0.0030
+         tl120 =  0.664817 & tr120 = 0.00334644    
       end
       
       'CB1': begin
          T1 = 0.654  & T2 = 0.022 & delta_t = 0.032
-         TL0 =  0.685 & TR0 = 0.053
-         TL60 = 0.649 & TR60 =  0.030
-         TL120 =  0.639 & TR120 = 0.034
+         
+         coefsp0 =  [     0.511250,     -0.284567]
+         coefsp60 =  [     0.475892,     -0.274390]
+         coefsp120 = [     0.470803,     -0.270663]
+         
+         tl0 =  0.717114 & tr0 = 0.0208187
+         tl60 =  0.674394 & tr60 = 0.0030
+         tl120 =  0.666609 & tr120 = 0.00433427
+         
       end
       
       else: begin
@@ -1270,6 +1436,8 @@ endif else begin
    bad = where(status_image ne 0)
    if not keyword_set(silent) then $
       print,'Fraction of image with bad pixels is ',n_elements(bad)/(float(n_elements(intensity)))
+
+   !EXCEPT = 2
    intensity[z] = tempi[z]
    polarization[z] = temppol[z]
    theta[z] = temptheta[z]
@@ -1303,6 +1471,9 @@ endif else begin
    
 endelse
 
+WRITE_CSV, "theta.csv", outstruct.theta
+WRITE_CSV, "polarization.csv", outstruct.polarization
+WRITE_CSV, "intensity.csv", outstruct.intensity
   
 ; write to Vicar-formatted file include label from file1. 
 if keyword_set(outfile) then begin
@@ -1314,6 +1485,17 @@ IF OBJ_VALID(OutObj) THEN OBJ_DESTROY,OutObj
 IF OBJ_VALID(ImgObj1) THEN OBJ_DESTROY,ImgObj1
 IF OBJ_VALID(ImgObj2) THEN OBJ_DESTROY,ImgObj2
 IF OBJ_VALID(ImgObj3) THEN OBJ_DESTROY,ImgObj3
+
+if keyword_set(tvals) then begin
+
+if CLR_FLAG then p = 1
+  case p of
+    1: tvals = [tl0,tr0]
+    2: tvals = [tl0,tr0,tl90,tr90]
+    3: tvals = [tl0,tr0,tl60,tr60,tl120,tr120]
+  endcase
+endif
+
 
 return,outstruct
 
