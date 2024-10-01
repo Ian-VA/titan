@@ -4,3 +4,7 @@ scripts/src/
 Data/HDF5Data/
 CubeData/
 __pycache__/
+cisscal/
+calib/
+!cisscal/make_polar_image.pro
+

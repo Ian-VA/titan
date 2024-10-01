@@ -1,7 +1,7 @@
 #!/bin/bash
 
 read -r -d '' IDL_SCRIPT <<EOF
-  ans = make_polar_image("$1", "$2", align=TRUE)
+  ans = make_polar_image("$1", "$2", align=TRUE, outfile="out.IMG")
   ; print, ans ;?
 EOF
 

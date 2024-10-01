@@ -11,8 +11,6 @@ import subprocess
 import time
 import concurrent.futures
 
-
-
 def check_compatible(cube_name):
     """
 
@@ -44,6 +42,48 @@ def check_compatible(cube_name):
     else:
         return False, pwavelength, pangle
 
+
+def process_calculated_values(is_nac, is_wac, data_names):
+    """
+    
+    Calibrates and projects calculated values, like degree of linear polarization
+
+    """
+
+    label_to_use = data_names[1]
+    label_to_use = label_to_use[:-3]
+    label_to_use += "LBL"
+
+    process_names = []
+
+    if is_nac:
+        process_names = ["intensity", "polarization", "theta"]
+    if is_wac:
+        process_names = ["q", "intensity"]
+
+    os.system(f"ciss2isis from={label_to_use} to=interim.cub")
+
+    with open("interim.cub", "r", encoding='utf-8') as f:
+        labels = f.read(2340) # number of bytes for all the labels
+
+    with open("labels.txt", "w+") as f:
+        f.write(labels)
+
+    cisscal_dir = os.path.expanduser('~/data_collection/cisscal')
+
+    for i in process_names:
+        os.system(f"vicar2isis from={cisscal_dir}/{i}.vicar to={cisscal_dir}/{i}.cub")
+
+        with open(f'{cisscal_dir}/{i}.cub', 'rb') as f:
+            f.seek(250)
+            data = f.read().splitlines(True)
+
+        with open(f"{cisscal_dir}/{i}.cub", 'wb+') as f:
+            f.write(labels.encode())
+            for i in data[32:]:
+                f.write(i)
+
+
 def return_calculated_values(cube_list):
     filters_dict = {}
     wavelength_dict = {}
@@ -66,6 +106,8 @@ def return_calculated_values(cube_list):
             else:
                 wavelength_dict[pwavelength].append(file_name)
 
+    polarized_data_names = []
+
     for i in wavelength_dict:
         if len(wavelength_dict[i]) >= 2:
             pangles = {}
@@ -84,7 +126,6 @@ def return_calculated_values(cube_list):
                 p0, p1, p2 = p0.split('CubeData/trimmed/', 1)[1], p1.split('CubeData/trimmed/', 1)[1], p2.split('trimmed/', 1)[1]
                 name1, name2, name3 = p0.split('.', 1)[0], p1.split('.', 1)[0], p2.split('.', 1)[0]
 
-
                 for filename in os.listdir("CubeData/unprocessed/"):
                     if filename.startswith(name1):
                         name1 = filename
@@ -97,9 +138,11 @@ def return_calculated_values(cube_list):
 
                 subprocess.call(['bash', 'scripts/invoke_gdl_nac.sh', p0, p1, p2])
 
-                return True
+                polarized_data_names[0], polarized_data_names[1], polarized_data_names[3] = p0, p1, p2
 
-            elif set(compatible_filters_ir).issubset(set(pangles.keys())):
+                return True, False, polarized_data_names
+
+            if set(compatible_filters_ir).issubset(set(pangles.keys())):
 
                 try:
                     p0, p90 = os.path.abspath(pangles['IRP0']), os.path.abspath(pangles['IRP90'])
@@ -112,11 +155,16 @@ def return_calculated_values(cube_list):
 
                 name1, name2 = p0.split('.', 1)[0], p90.split('.', 1)[0]
 
+
                 p0, p90 = path + name1, path + name2
 
                 subprocess.call(['bash', 'scripts/invoke_gdl_ir.sh', p0, p90])
 
-                return False
+                polarized_data_names[0], polarized_data_names[1] = p0, p90
+
+                return False, True, polarized_data_names
+
+    return False, False, polarized_data_names
 
 def return_one_geolocation_value(cube):
     file_name = f"CubeData/trimmed/{cube}"
@@ -164,7 +212,6 @@ def return_one_geolocation_value(cube):
             geolocation_dict1["viewing_zenith"][i][j] = float(pvlfile["Emission"])
 
             geolocation_dict1["relative_azimuth"][i][j] = abs(float(pvlfile["SpacecraftAzimuth"]) - 180.0 - float(pvlfile["SubSolarAzimuth"]))
-
 
 def return_geolocation_values(cube_list):
 
@@ -221,19 +268,22 @@ def convert_flybys_to_hdf5(directory: str = "Data/Flybys/", trimmed: bool = True
             for j in ["calculated_values", "spectral_values"]:
                 file.create_group(f"{j}")
 
+            """
             geolocation = return_geolocation_values(cube_list)
 
             for index, j in enumerate(geolocation):
-                for k in j.keys():
-                    file.create_dataset(f"{cube_list[index]}/geolocation_values/{k}", data=j[k], dtype='f')
+                file.create_dataset(f"{cube_list[index]}/geolocation_values/{j}", data=j, dtype='f')
+
+            """
 
             polarization_angles, wavelengths = return_spectral_values(cube_list)
             file.create_dataset(f"spectral_values/polarization_angles", data=polarization_angles, dtype='f')
             file.create_dataset(f"spectral_values/wavelengths", data=wavelengths, dtype='f')
 
             try:
-                is_nac = return_calculated_values(cube_list)
-                
+                is_nac, is_wac, names = return_calculated_values(cube_list)
+                process_calculated_values(names, is_nac, is_wac)
+
                 if is_nac:
                     intensity = pd.read_csv("cisscal/intensity.csv").to_numpy()
                     theta = pd.read_csv("cisscal/theta.csv").to_numpy()
@@ -242,14 +292,16 @@ def convert_flybys_to_hdf5(directory: str = "Data/Flybys/", trimmed: bool = True
                     file.create_dataset(f"calculated_values/intensity", data=intensity, dtype='f')
                     file.create_dataset(f"calculated_values/dolp", data=polarization, dtype='f')
                     file.create_dataset(f"calculated_values/theta", data=theta, dtype='f')
-                else:
-                    intensity = pd.read_csv("cisscal/intensity.csv").to_numpy()                           
+                if is_wac:
+                    intensity = pd.read_csv("cisscal/intensity_ir.csv").to_numpy()                           
                     q = pd.read_csv("cisscal/q.csv").to_numpy()
 
-                    file.create_dataset(f"calculated_values/intensity", data=intensity, dtype='f')
+                    file.create_dataset(f"calculated_values/intensity_ir", data=intensity, dtype='f')
                     file.create_dataset(f"calculated_values/q", data=q, dtype='f')
             except:
                 continue
 
 if __name__ == "__main__":
-    convert_flybys_to_hdf5()
+    #convert_flybys_to_hdf5()
+
+    process_calculated_values(True, False, ["/home/ian/data_collection/CubeData/unprocessed/N1481591826_4.IMG", "/home/ian/data_collection/CubeData/unprocessed/N1481591931_4.IMG", "/home/ian/data_collection/CubeData/unprocessed/N1481592068_4.IMG"])

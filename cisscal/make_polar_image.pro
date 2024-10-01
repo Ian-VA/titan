@@ -1114,8 +1114,12 @@ if p eq 2 then begin
       outstruct.q = q
    endelse
 
-   WRITE_CSV, "intensity.csv", outstruct.intensity
-   WRITE_CSV, "q.csv", outstruct.q
+   OutObj->writevic,"q.vicar",pol=outstruct.q
+   OutObj->writevic,"intensity.vicar", pol=outstruct.intensity
+
+
+ ;  WRITE_CSV, "intensity_ir.csv", outstruct.intensity
+  ; WRITE_CSV, "q.csv", outstruct.q
 
    if keyword_set(tvals) then begin
     case CLR_FLAG of
@@ -1471,15 +1475,23 @@ endif else begin
    
 endelse
 
-WRITE_CSV, "theta.csv", outstruct.theta
-WRITE_CSV, "polarization.csv", outstruct.polarization
-WRITE_CSV, "intensity.csv", outstruct.intensity
+;WRITE_CSV, "theta.csv", outstruct.theta
+;WRITE_CSV, "polarization.csv", outstruct.polarization
+;WRITE_CSV, "intensity.csv", outstruct.intensity
   
-; write to Vicar-formatted file include label from file1. 
-if keyword_set(outfile) then begin
-   if not keyword_set(silent) then print, 'Writing intensity array in VICAR format to file: ',outfile
-   OutObj->writevic,outfile,pol=outstruct.intensity
-endif
+; writes theta, polarization, and intensity to different VICARs for processing 
+
+OutObj->writevic,"theta.vicar",pol=outstruct.theta
+OutObj->writevic,"polarization.vicar", pol=outstruct.polarization
+OutObj->writevic,"intensity.vicar", pol=outstruct.intensity
+
+; useless because its just intensity
+
+
+;if keyword_set(outfile) then begin
+;  if not keyword_set(silent) then print, 'Writing intensity array in VICAR format to file: ',outfile
+;  OutObj->writevic,outfile,pol=outstruct.intensity
+;endif
 
 IF OBJ_VALID(OutObj) THEN OBJ_DESTROY,OutObj
 IF OBJ_VALID(ImgObj1) THEN OBJ_DESTROY,ImgObj1

@@ -3,7 +3,7 @@
 cd /home/ian/data_collection/CubeData/unprocessed
 
 read -r -d '' IDL_SCRIPT <<EOF
-  ans = make_polar_image("$1", "$2", "$3", align=true)
+  ans = make_polar_image("$1", "$2", "$3", align=true, outfile=out.IMG)
   ; print, ans ;?
 EOF
 
