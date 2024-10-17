@@ -59,21 +59,18 @@ def img_and_label_only(name):
     os.system(f"rm -rf CubeData/unprocessed/{name}")
 
 def convert_to_cube(name):
-    label = ""
-
-    for i in os.listdir(f"CubeData/processed/{name}"):
-        if i.endswith(".LBL"):
-            label = i
-            break
+    label = name
+    cube_name = name[:-4]
+    path = os.path.expanduser('~/data_collection/CubeData/unprocessed')
 
     try:
-        isis.ciss2isis(from_=f"CubeData/processed/{name}/{label}", to=f"CubeData/processed/{name}.cub")
+        isis.ciss2isis(from_=f"{path}/{label}", to=f"CubeData/processed/{cube_name}.cub")
     except ProcessError as e:
         print(f"Error encountered with ciss2isis: {e.stderr}")
 
-    os.system(f"rm -rf CubeData/processed/{name}")
 
 def processing(names):
+    """
     
     with pysis.IsisPool() as pool:
         for file in names:
@@ -81,6 +78,8 @@ def processing(names):
                 pool.spiceinit(from_=f"CubeData/processed/{file}")
             except ProcessError as e:
                 print(f"Error encountered with sample {file} during spiceinit: {e.stderr}")
+
+    """
 
     with pysis.IsisPool() as pool:
         for file in names:
@@ -91,7 +90,9 @@ def processing(names):
             except ProcessError as e:
                 print(f"Error encountered with sample {file} during cisscal: {e.stderr}")
 
-            os.system(f"rm processed/{file}")
+            os.system(f"rm CubeData/processed/{file}")
+            
+    """
 
     with pysis.IsisPool() as pool:
         for file in names:
@@ -104,6 +105,12 @@ def processing(names):
 
             os.system(f"rm CubeData/processed/{cal_name}")
 
+    """
+
+def get_rid_of_mapping(names):
+    with pysis.IsisPool() as pool:
+        for file in names:
+            pass
 
 if __name__ == "__main__":
     q1 = query
@@ -126,12 +133,23 @@ if __name__ == "__main__":
     for i in data:
         observation_names.append(i[0])
 
+    """
     with multiprocessing.Pool() as p:
         p.map(scrape_data, observation_names)
+    """
+
+    """
+
+    names = []
+
+    for file in os.listdir("CubeData/unprocessed/"):
+        if file.endswith(".LBL"):
+            names.append(file)
 
     with multiprocessing.Pool() as p:
-        p.map(convert_to_cube, os.listdir("CubeData/unprocessed/"))
+        p.map(convert_to_cube, names)
+    """
 
-    processing(os.listdir("CubeData/unprocessed"))
+    processing(os.listdir("CubeData/processed"))
 
 

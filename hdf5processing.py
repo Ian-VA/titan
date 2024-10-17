@@ -268,13 +268,11 @@ def convert_flybys_to_hdf5(directory: str = "Data/Flybys/", trimmed: bool = True
             for j in ["calculated_values", "spectral_values"]:
                 file.create_group(f"{j}")
 
-            """
             geolocation = return_geolocation_values(cube_list)
 
             for index, j in enumerate(geolocation):
                 file.create_dataset(f"{cube_list[index]}/geolocation_values/{j}", data=j, dtype='f')
 
-            """
 
             polarization_angles, wavelengths = return_spectral_values(cube_list)
             file.create_dataset(f"spectral_values/polarization_angles", data=polarization_angles, dtype='f')
@@ -302,6 +300,8 @@ def convert_flybys_to_hdf5(directory: str = "Data/Flybys/", trimmed: bool = True
                 continue
 
 if __name__ == "__main__":
-    #convert_flybys_to_hdf5()
+    convert_flybys_to_hdf5()
 
+    """
     process_calculated_values(True, False, ["/home/ian/data_collection/CubeData/unprocessed/N1481591826_4.IMG", "/home/ian/data_collection/CubeData/unprocessed/N1481591931_4.IMG", "/home/ian/data_collection/CubeData/unprocessed/N1481592068_4.IMG"])
+    """
